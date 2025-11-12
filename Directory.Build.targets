@@ -1,0 +1,13 @@
+﻿<Project>
+	<!-- Par défaut, build en dossier bin classique -->
+	<PropertyGroup>
+		<OutputPath>bin\</OutputPath>
+	</PropertyGroup>
+
+	<!-- Si le projet s'appelle AyaMods.UtilitySlots, on déploie dans plugins -->
+	<PropertyGroup Condition="'$(MSBuildProjectName)' == 'AyaMods.UtilitySlots'">
+		<OutputPath>$(BepInExDir)\plugins\AyaMods.UtilitySlots\</OutputPath>
+	</PropertyGroup>
+
+	<!-- Tu peux ajouter d’autres règles par nom de projet si tu crées d’autres mods -->
+</Project>
