@@ -1,6 +1,6 @@
 ﻿
 
-namespace AyaMods.Core
+namespace AyaCoreMod.Core
 {
     public static class FeatureFlags
     {

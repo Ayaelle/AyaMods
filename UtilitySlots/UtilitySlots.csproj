@@ -57,9 +57,9 @@
     <Folder Include="Features\QuickSlotExtensionFeature\Patch\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AyaMods.Core\AyaMods.csproj">
+    <ProjectReference Include="..\AyaMods.Core\AyaCoreMod.csproj">
       <Project>{740aa459-7316-4036-97a6-66371dd3079e}</Project>
-      <Name>AyaMods</Name>
+      <Name>AyaCoreMod</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

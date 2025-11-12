@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AyaMods.Features
+namespace AyaCoreMod
 {
-    internal class FeatureRegistry
+    public class Class1
     {
     }
 }

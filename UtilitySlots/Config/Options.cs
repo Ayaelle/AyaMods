@@ -2,7 +2,7 @@
 using Nautilus.Json;
 using UnityEngine;
 
-namespace AyaMods.UtilitySlots.Config
+namespace AyaCoreMod.UtilitySlots.Config
 {
     [Menu("AyaMods: Utility Slots")]
     public class Options : ConfigFile

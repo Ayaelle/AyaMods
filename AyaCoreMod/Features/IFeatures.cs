@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace AyaMods.Feature
+namespace AyaCoreMod.Feature
 {
     public interface IFeature
     {

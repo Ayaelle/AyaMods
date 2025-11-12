@@ -2,7 +2,7 @@
 using TMPro;
 using UnityEngine;
 
-namespace AyaMods.UtilitySlots.UI
+namespace AyaCoreMod.UtilitySlots.UI
 {
     public static class UiHelpers
     {

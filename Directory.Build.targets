@@ -1,13 +1,11 @@
 ﻿<Project>
-	<!-- Par défaut, build en dossier bin classique -->
+	<!-- Par défaut, chaque projet build dans son dossier bin\ -->
 	<PropertyGroup>
 		<OutputPath>bin\</OutputPath>
 	</PropertyGroup>
 
-	<!-- Si le projet s'appelle AyaMods.UtilitySlots, on déploie dans plugins -->
-	<PropertyGroup Condition="'$(MSBuildProjectName)' == 'AyaMods.UtilitySlots'">
-		<OutputPath>$(BepInExDir)\plugins\AyaMods.UtilitySlots\</OutputPath>
+	<!-- Le projet UtilitySlots sort directement dans BepInEx/plugins -->
+	<PropertyGroup Condition="'$(MSBuildProjectName)' == 'UtilitySlots'">
+		<OutputPath>$(BepInExDir)\plugins\UtilitySlots\</OutputPath>
 	</PropertyGroup>
-
-	<!-- Tu peux ajouter d’autres règles par nom de projet si tu crées d’autres mods -->
 </Project>

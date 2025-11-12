@@ -2,7 +2,7 @@
 using System.Collections;
 using UnityEngine;
 
-namespace AyaMods.Core
+namespace AyaCoreMod.Core
 {
     public static class InputManager
     {
@@ -19,7 +19,7 @@ namespace AyaMods.Core
                 }
                 catch { yield return null; }
             }
-            Log.Info("[AyaMods.Core] Input ready=" + Ready);
+            Log.Info("[AyaCoreMod.Core] Input ready=" + Ready);
         }
     }
 }

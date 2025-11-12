@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace AyaMods.Core
+namespace AyaCoreMod.Core
 {
     public static class Guard
     {

@@ -1,7 +1,7 @@
 ﻿<Project>
 	<!-- Variables globales (une seule fois ici) -->
 	<PropertyGroup>
-		<!-- Mets ton chemin Steam Subnautica -->
+		<!-- Chemin Steam Subnautica -->
 		<SubnauticaDir>C:\Program Files (x86)\Steam\steamapps\common\Subnautica</SubnauticaDir>
 		<ManagedDir>$(SubnauticaDir)\Subnautica_Data\Managed</ManagedDir>
 
@@ -21,38 +21,38 @@
 			<HintPath>$(ManagedDir)\Assembly-CSharp.dll</HintPath>
 			<Private>false</Private>
 		</Reference>
-		
+
 		<Reference Include="UnityEngine.CoreModule">
 			<HintPath>$(ManagedDir)\UnityEngine.CoreModule.dll</HintPath>
 			<Private>false</Private>
 		</Reference>
-		
+
 		<Reference Include="UnityEngine.UI">
 			<HintPath>$(ManagedDir)\UnityEngine.UI.dll</HintPath>
 			<Private>false</Private>
 		</Reference>
-		
+
 		<Reference Include="UnityEngine.TextRenderingModule">
 			<HintPath>$(ManagedDir)\UnityEngine.TextRenderingModule.dll</HintPath>
 			<Private>false</Private>
 		</Reference>
-		
+
 		<Reference Include="TextMeshPro">
 			<HintPath>$(ManagedDir)\Unity.TextMeshPro.dll</HintPath>
 			<Private>false</Private>
 		</Reference>
-		
+
 		<Reference Include="0Harmony">
 			<HintPath>$(BepInExDir)\core\0Harmony.dll</HintPath>
 			<Private>false</Private>
 		</Reference>
-		
+
 		<Reference Include="Nautilus">
 			<HintPath>$(BepInExDir)\plugins\Nautilus\Nautilus.dll</HintPath>
 			<Private>false</Private>
 		</Reference>
-		
-		<!-- (Optionnel) BepInEx Logging si tu l’utilises dans Core -->
+
+		<!-- BepInEx (pour les logs, attributs, etc.) -->
 		<Reference Include="BepInEx">
 			<HintPath>$(BepInExDir)\core\BepInEx.dll</HintPath>
 			<Private>false</Private>

@@ -1,6 +1,6 @@
-﻿using AyaMods.Core;
-using AyaMods.Feature;
-using AyaMods.UtilitySlots.Config;
+﻿using AyaCoreMod.Core;
+using AyaCoreMod.Feature;
+using AyaCoreMod.UtilitySlots.Config;
 using BepInEx;
 using HarmonyLib;
 using Nautilus.Handlers;
@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UtilitySlots.Config;
 
-namespace AyaMods.UtilitySlots
+namespace AyaCoreMod.UtilitySlots
 {
     [BepInPlugin(GUID, MODNAME, VERSION)]
     [BepInDependency("com.snmodding.nautilus", BepInDependency.DependencyFlags.HardDependency)]
