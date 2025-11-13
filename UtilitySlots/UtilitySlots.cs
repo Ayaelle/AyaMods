@@ -1,11 +1,9 @@
 ﻿using AyaCoreMod.Core;
 using AyaCoreMod.Features;
-using AyaCoreMod.UtilitySlots.Config;
 using BepInEx;
 using HarmonyLib;
 using HarmonyLib.Public.Patching;
 using System.Reflection;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 using UtilitySlots.Config;
 
