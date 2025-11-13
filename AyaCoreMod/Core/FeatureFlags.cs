@@ -1,9 +1,14 @@
-﻿
-
-namespace AyaCoreMod.Core
+﻿namespace AyaCoreMod.Core
 {
+    /// <summary>
+    /// Indicateurs globaux pour activer / désactiver certains comportements du core.
+    /// </summary>
     public static class FeatureFlags
     {
-        public static bool SafeMode = false;    // Global panic button Safe Mode
+        /// <summary>
+        /// Quand vrai, aucun patch ni hook ne devrait s'exécuter dans les mods qui respectent ce flag.
+        /// Pratique comme "panic mode" en cas de bug sur une save.
+        /// </summary>
+        public static bool SafeMode = false;
     }
 }

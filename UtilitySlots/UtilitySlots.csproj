@@ -42,25 +42,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Features\ExtraSlotsFeature\ExtraSlotsFeature.cs" />
+    <Compile Include="Features\InternalAccessFeature\InternalAccesFeature.cs" />
+    <Compile Include="Features\QuickSlotExtensionFeature\QuickSlotExtensionFeature.cs" />
     <Compile Include="UI\UiHelpers.cs" />
     <Compile Include="UtilitySlots.cs" />
     <Compile Include="Config\Options.cs" />
-    <Compile Include="Features\InternalAccessFeature\InternalAccessFeature.cs" />
-    <Compile Include="Features\QuickSlotExtensionFeature\QuickSLotsExtensionFeature.cs" />
-    <Compile Include="Features\UtilitySlotsFeature\Patches\Equipment_SlotMapping_Patch.cs" />
-    <Compile Include="Features\UtilitySlotsFeature\Patches\UguiEquipement_Awake_Patch.cs" />
-    <Compile Include="Features\UtilitySlotsFeature\UtilitySlotsFeature.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Features\InternalAccessFeature\Patches\" />
-    <Folder Include="Features\QuickSlotExtensionFeature\Patch\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AyaMods.Core\AyaCoreMod.csproj">
-      <Project>{740aa459-7316-4036-97a6-66371dd3079e}</Project>
-      <Name>AyaCoreMod</Name>
-    </ProjectReference>
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

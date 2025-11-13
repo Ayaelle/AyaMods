@@ -2,12 +2,20 @@
 
 namespace AyaCoreMod.Core
 {
+    /// <summary>
+    /// Petit wrapper autour du logger BepInEx pour pouvoir l'utiliser partout dans le core.
+    /// </summary>
     public static class Log
     {
-        static ManualLogSource _l;
-        public static void Bind(ManualLogSource l) => _l = l;
-        public static void Info(string m) => _l?.LogInfo(m);
-        public static void Warn(string m) => _l?.LogWarning(m);
-        public static void Error(string m) => _l?.LogError(m);
+        private static ManualLogSource _logger;
+
+        public static void Bind(ManualLogSource logger)
+        {
+            _logger = logger;
+        }
+
+        public static void Info(string message) => _logger?.LogInfo(message);
+        public static void Warn(string message) => _logger?.LogWarning(message);
+        public static void Error(string message) => _logger?.LogError(message);
     }
 }
