@@ -6,8 +6,8 @@ using UnityEngine;
 namespace UtilitySlots.Features.InternalAccessFeature
 {
     /// <summary>
-    /// Feature qui permet d'ouvrir le PDA depuis l'intérieur d'un véhicule,
-    /// via une touche configurable dans le menu Nautilus.
+    /// Gère l'accès interne aux upgrades et au stockage depuis l'intérieur
+    /// des véhicules, en fonction des options Nautilus.
     /// </summary>
     public class InternalAccessFeature : IFeature
     {
@@ -15,7 +15,7 @@ namespace UtilitySlots.Features.InternalAccessFeature
 
         public void Enable()
         {
-            // On crée un petit GameObject persistant avec un MonoBehaviour
+            // (identique) On crée un petit GameObject persistant avec un MonoBehaviour
             // qui écoutera l'input chaque frame.
             _runner = new GameObject("UtilitySlotsInternalAccessRunner");
             Object.DontDestroyOnLoad(_runner);
@@ -32,7 +32,7 @@ namespace UtilitySlots.Features.InternalAccessFeature
         }
 
         /// <summary>
-        /// Composant Unity qui tourne en jeu et gère la touche d'accès interne.
+        /// Composant Unity qui tourne en jeu et gère les touches d'accès interne.
         /// </summary>
         private class Runner : MonoBehaviour
         {
@@ -40,21 +40,16 @@ namespace UtilitySlots.Features.InternalAccessFeature
 
             private void Update()
             {
-                // Si GameInput n'est pas encore prêt, on ne fait rien
+                // (identique) Si GameInput n'est pas encore prêt, on ne fait rien
                 if (!InputManager.Ready)
                     return;
 
-                // Si une UI importante est ouverte (PDA, menu), on ne fait rien
+                // (identique) Si une UI importante est ouverte (PDA, menu), on ne fait rien
                 if (Guard.UIBusy())
                     return;
 
                 var options = Options.Instance;
                 if (options == null || !options.EnableInternalAccess)
-                    return;
-
-                // Récupère la touche configurée dans les options
-                var key = options.InternalAccessKey;
-                if (!Input.GetKeyDown(key))
                     return;
 
                 var player = Player.main;
@@ -65,19 +60,130 @@ namespace UtilitySlots.Features.InternalAccessFeature
                 if (vehicle == null)
                     return;
 
-                // Respect des options par type de véhicule
-                if (vehicle is SeaMoth && !options.SeamothInternalAccess)
+                // ----------------------------
+                // (CHANGED) On ne lit plus UNE seule touche,
+                // mais deux : upgrades et stockage.
+                // ----------------------------
+                bool upgradesPressed = UnityEngine.Input.GetKeyDown(options.InternalUpgradesKey);
+                bool storagePressed = UnityEngine.Input.GetKeyDown(options.InternalStorageKey);
+
+                // Si aucune des touches n'est pressée, on quitte.
+                if (!upgradesPressed && !storagePressed)
                     return;
 
-                if (vehicle is Exosuit && !options.ExosuitInternalAccess)
+                // ----------------------------
+                // (CHANGED) On route selon le type de véhicule
+                // et on délègue à des méthodes dédiées.
+                // ----------------------------
+                if (vehicle is SeaMoth seamoth)
+                {
+                    HandleSeamothInternalAccess(seamoth, options, upgradesPressed, storagePressed);
+                }
+                else if (vehicle is Exosuit exosuit)
+                {
+                    HandleExosuitInternalAccess(exosuit, options, upgradesPressed, storagePressed);
+                }
+            }
+
+            // ----------------------------
+            // (NEW) Logique spécifique Seamoth
+            // ----------------------------
+            private void HandleSeamothInternalAccess(SeaMoth seamoth, Options options, bool upgradesPressed, bool storagePressed)
+            {
+                // Upgrades depuis l'intérieur du Seamoth (module rack)
+                if (upgradesPressed && options.SeamothInternalUpgrades)
+                {
+                    if (seamoth.upgradesInput != null)
+                    {
+                        seamoth.upgradesInput.OpenFromExternal();
+                        Log.Info("[UtilitySlots] Opened Seamoth upgrade console.");
+                    }
+                    return;
+                }
+
+                // Stockage interne du Seamoth
+                if (storagePressed && options.SeamothInternalStorage)
+                {
+                    try
+                    {
+                        int slotCount = seamoth.storageInputs?.Length ?? 0;
+                        if (slotCount == 0)
+                        {
+                            Log.Info("[UtilitySlots] Seamoth has no storageInputs.");
+                            return;
+                        }
+
+                        // Vérifie quels slots contiennent un module de stockage
+                        for (int i = 0; i < slotCount; i++)
+                        {
+                            var tech = seamoth.GetSlotBinding(i);
+
+                            if (tech == TechType.VehicleStorageModule)
+                            {
+                                var input = seamoth.storageInputs[i];
+                                if (input != null)
+                                {
+                                    input.OpenFromExternal();
+                                    Log.Info($"[UtilitySlots] Opened Seamoth storage from slot index {i}.");
+                                    return;
+                                }
+                            }
+                        }
+
+                        Log.Info("[UtilitySlots] No VehicleStorageModule installed in Seamoth.");
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Log.Error("[UtilitySlots] Error while opening Seamoth storage: " + ex);
+                    }
+                }
+            }
+
+            // ----------------------------
+            // (NEW) Logique spécifique Exosuit
+            // ----------------------------
+            private void HandleExosuitInternalAccess(Exosuit exosuit, Options options, bool upgradesPressed, bool storagePressed)
+            {
+                // Upgrades depuis l'intérieur du Prawn
+                if (upgradesPressed && options.ExosuitInternalUpgrades)
+                {
+                    if (exosuit.upgradesInput != null)
+                    {
+                        exosuit.upgradesInput.OpenFromExternal();
+                    }
+                    else
+                    {
+                        OpenPDA();
+                    }
+                    return;
+                }
+
+                // Stockage depuis l'intérieur du Prawn
+                if (storagePressed && options.ExosuitInternalStorage)
+                {
+                    if (exosuit.storageContainer != null)
+                    {
+                        exosuit.storageContainer.Open();
+                    }
+                    else
+                    {
+                        Log.Warn("[UtilitySlots] Exosuit has no storageContainer to open.");
+                    }
+                    return;
+                }
+            }
+
+            // (CHANGED) Helper pour ouvrir le PDA (utilisé en fallback)
+            private void OpenPDA()
+            {
+                var player = Player.main;
+                if (player == null)
                     return;
 
-                // Récupération du PDA du joueur
                 _pda = player.GetPDA();
                 if (_pda == null)
                     return;
 
-                // Ouverture propre du PDA (c'est lui qui gère l'UI)
                 if (!_pda.isOpen)
                     _pda.Open();
             }

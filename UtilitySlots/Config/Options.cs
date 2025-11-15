@@ -42,6 +42,8 @@ namespace UtilitySlots.Config
         // -----------------------------
         //   VEHICLE MODULE SLOTS
         // -----------------------------
+        [Toggle("Enable Extra Slots")]
+        public bool EnableExtraSlots { get; set; } = true;
 
         [Slider("Seamoth Module Slots", 2, 12, DefaultValue = 4)]
         public int SeamothModules = 4;
