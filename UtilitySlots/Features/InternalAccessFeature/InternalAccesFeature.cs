@@ -1,52 +1,85 @@
-﻿using System.Collections;
-using UnityEngine;
-using Nautilus.Utility;
+﻿using AyaCoreMod.Core;
+using AyaCoreMod.Features;
 using UtilitySlots.Config;
+using UnityEngine;
 
-namespace UtilitySlots.Features.InternalAccess
+namespace UtilitySlots.Features.InternalAccessFeature
 {
     /// <summary>
-    /// Gère l'ouverture des upgrades ou du stockage depuis l'intérieur des véhicules.
+    /// Feature qui permet d'ouvrir le PDA depuis l'intérieur d'un véhicule,
+    /// via une touche configurable dans le menu Nautilus.
     /// </summary>
-    public static class InternalAccessFeature
+    public class InternalAccessFeature : IFeature
     {
-        public static bool Enabled => Options.Instance.EnableInternalAccess;
+        private GameObject _runner;
 
-        public static void Update()
+        public void Enable()
         {
-            if (!Enabled)
-                return;
+            // On crée un petit GameObject persistant avec un MonoBehaviour
+            // qui écoutera l'input chaque frame.
+            _runner = new GameObject("UtilitySlotsInternalAccessRunner");
+            Object.DontDestroyOnLoad(_runner);
+            _runner.AddComponent<Runner>();
+        }
 
-            var options = Options.Instance;
-
-            // Raccourci d'accès
-            var key = options.InternalAccessKey;
-            if (!Input.GetKeyDown(key))
-                return;
-
-            // Si le joueur n'est pas dans un véhicule, on ne fait rien
-            var vehicle = Player.main.currentMountedVehicle;
-            if (!vehicle)
-                return;
-
-            // Anti-overlay : si une autre UI est ouverte => ne rien faire
-            if (PDA.isOpen) return;
-            if (IngameMenu.main && IngameMenu.main.isActiveAndEnabled) return;
-            if (uGUI.main?.loading != null && uGUI.main.loading.activeSelf) return;
-            if (DevConsole.instance && DevConsole.instance.state == DevConsoleState.Open) return;
-
-            // Si Seamoth
-            if (vehicle is SeaMoth seamoth)
+        public void Disable()
+        {
+            if (_runner != null)
             {
-                seamoth.upgradesInput.OpenFromExternal();
-                return;
+                Object.Destroy(_runner);
+                _runner = null;
             }
+        }
 
-            // Si Prawn
-            if (vehicle is Exosuit prawn)
+        /// <summary>
+        /// Composant Unity qui tourne en jeu et gère la touche d'accès interne.
+        /// </summary>
+        private class Runner : MonoBehaviour
+        {
+            private PDA _pda;
+
+            private void Update()
             {
-                prawn.storageContainer?.Open();
-                return;
+                // Si GameInput n'est pas encore prêt, on ne fait rien
+                if (!InputManager.Ready)
+                    return;
+
+                // Si une UI importante est ouverte (PDA, menu), on ne fait rien
+                if (Guard.UIBusy())
+                    return;
+
+                var options = Options.Instance;
+                if (options == null || !options.EnableInternalAccess)
+                    return;
+
+                // Récupère la touche configurée dans les options
+                var key = options.InternalAccessKey;
+                if (!Input.GetKeyDown(key))
+                    return;
+
+                var player = Player.main;
+                if (player == null)
+                    return;
+
+                var vehicle = player.currentMountedVehicle;
+                if (vehicle == null)
+                    return;
+
+                // Respect des options par type de véhicule
+                if (vehicle is SeaMoth && !options.SeamothInternalAccess)
+                    return;
+
+                if (vehicle is Exosuit && !options.ExosuitInternalAccess)
+                    return;
+
+                // Récupération du PDA du joueur
+                _pda = player.GetPDA();
+                if (_pda == null)
+                    return;
+
+                // Ouverture propre du PDA (c'est lui qui gère l'UI)
+                if (!_pda.isOpen)
+                    _pda.Open();
             }
         }
     }

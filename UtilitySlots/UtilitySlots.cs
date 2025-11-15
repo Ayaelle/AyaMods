@@ -2,10 +2,10 @@
 using AyaCoreMod.Features;
 using BepInEx;
 using HarmonyLib;
-using HarmonyLib.Public.Patching;
 using System.Reflection;
 using UnityEngine.SceneManagement;
 using UtilitySlots.Config;
+using CorePatchManager = AyaCoreMod.Core.PatchManager;
 
 namespace UtilitySlots
 {
@@ -41,7 +41,7 @@ namespace UtilitySlots
 
             // Crée une instance Harmony dédiée à ce mod
             _harmony = new Harmony(Guid);
-            PatchManager.ApplyAll(_harmony, Assembly.GetExecutingAssembly());
+            CorePatchManager.ApplyAll(_harmony, Assembly.GetExecutingAssembly());
 
             // Hook sur le chargement de scène pour initialiser InputManager et les features
             SceneManager.sceneLoaded += OnSceneLoaded;

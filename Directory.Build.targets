@@ -4,8 +4,21 @@
 		<OutputPath>bin\</OutputPath>
 	</PropertyGroup>
 
-	<!-- Le projet UtilitySlots sort directement dans BepInEx/plugins -->
-	<PropertyGroup Condition="'$(MSBuildProjectName)' == 'UtilitySlots'">
-		<OutputPath>$(BepInExDir)\plugins\UtilitySlots\</OutputPath>
+	<!-- Dossier commun pour les mods Aya dans BepInEx -->
+	<PropertyGroup>
+		<AyaModsOutputDir>$(BepInExDir)\plugins\AyaMods\</AyaModsOutputDir>
 	</PropertyGroup>
+
+	<!-- Après le build, copie AyaCoreMod.dll et UtilitySlots.dll dans BepInEx/plugins/AyaMods -->
+	<Target Name="CopyAyaModsToBepInEx"
+			AfterTargets="Build"
+			Condition="'$(MSBuildProjectName)' == 'AyaCoreMod' OR '$(MSBuildProjectName)' == 'UtilitySlots'">
+
+		<!-- $(TargetPath) = chemin complet du .dll juste compilé -->
+		<Copy
+		  SourceFiles="$(TargetPath)"
+		  DestinationFolder="$(AyaModsOutputDir)"
+		  SkipUnchangedFiles="true" />
+	</Target>
+
 </Project>
