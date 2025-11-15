@@ -1,72 +1,52 @@
-﻿using AyaCoreMod.Core;
-using AyaCoreMod.Features;
-using UtilitySlots.Config;
+﻿using System.Collections;
 using UnityEngine;
+using Nautilus.Utility;
+using UtilitySlots.Config;
 
-namespace UtilitySlots.Features.InternalAccessFeature
+namespace UtilitySlots.Features.InternalAccess
 {
     /// <summary>
-    /// Gère l'accès améliorations / stockage depuis l'intérieur des véhicules,
-    /// en passant proprement par le PDA (pas d'overlay maison).
+    /// Gère l'ouverture des upgrades ou du stockage depuis l'intérieur des véhicules.
     /// </summary>
-    public class InternalAccessFeature : IFeature
+    public static class InternalAccessFeature
     {
-        private GameObject _runner;
+        public static bool Enabled => Options.Instance.EnableInternalAccess;
 
-        public void Enable()
+        public static void Update()
         {
-            _runner = new GameObject("UtilitySlotsInternalAccessRunner");
-            Object.DontDestroyOnLoad(_runner);
-            _runner.AddComponent<Runner>();
-        }
+            if (!Enabled)
+                return;
 
-        public void Disable()
-        {
-            if (_runner != null)
-                Object.Destroy(_runner);
-        }
+            var options = Options.Instance;
 
-        private class Runner : MonoBehaviour
-        {
-            private PDA _pda;
+            // Raccourci d'accès
+            var key = options.InternalAccessKey;
+            if (!Input.GetKeyDown(key))
+                return;
 
-            private void Update()
+            // Si le joueur n'est pas dans un véhicule, on ne fait rien
+            var vehicle = Player.main.currentMountedVehicle;
+            if (!vehicle)
+                return;
+
+            // Anti-overlay : si une autre UI est ouverte => ne rien faire
+            if (PDA.isOpen) return;
+            if (IngameMenu.main && IngameMenu.main.isActiveAndEnabled) return;
+            if (uGUI.main?.loading != null && uGUI.main.loading.activeSelf) return;
+            if (DevConsole.instance && DevConsole.instance.state == DevConsoleState.Open) return;
+
+            // Si Seamoth
+            if (vehicle is SeaMoth seamoth)
             {
-                if (!InputManager.Ready)
-                    return;
+                seamoth.upgradesInput.OpenFromExternal();
+                return;
+            }
 
-                if (Guard.UIBusy())
-                    return;
-
-                var options = Options.Instance;
-                if (options == null || !options.EnableInternalAccess)
-                    return;
-
-                var key = options.InternalAccessKey;
-                if (!Input.GetKeyDown(key))
-                    return;
-
-                var player = Player.main;
-                if (player == null)
-                    return;
-
-                var vehicle = player.currentMountedVehicle;
-                if (vehicle == null)
-                    return;
-
-                if (vehicle is SeaMoth && !options.SeamothInternalAccess)
-                    return;
-
-                if (vehicle is Exosuit && !options.ExosuitInternalAccess)
-                    return;
-
-                _pda = player.GetPDA();
-                if (_pda == null)
-                    return;
-
-                // Ouverture propre du PDA. Ensuite, tu pourras cibler un onglet spécifique si l'API le permet.
-                if (!_pda.isOpen)
-                    _pda.Open();
+            // Si Prawn
+            if (vehicle is Exosuit prawn)
+            {
+                prawn.storageContainer?.Open();
+                return;
             }
         }
     }

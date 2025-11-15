@@ -18,29 +18,38 @@ namespace UtilitySlots.Config
             Instance = this;
         }
 
-        [Header("Chips (Player)")]
+        // --- Chips joueur ---
+
         [Slider("Player chip slots", 2, 6)]
         public int ChipSlots { get; set; } = 4;
 
-        [Header("Seamoth")]
-        [Slider("Module slots", 4, 12)]
+        // --- Seamoth ---
+
+        [Slider("Seamoth module slots", 4, 12)]
         public int SeamothSlots { get; set; } = 8;
 
         [Toggle("Internal access (Seamoth)")]
         public bool SeamothInternalAccess { get; set; } = true;
 
-        [Header("Prawn (Exosuit)")]
-        [Slider("Module slots", 4, 12)]
+        [Toggle("Enable Seamoth arm slots")]
+        public bool SeamothArmSlots { get; set; } = true;
+
+
+        // --- Prawn (Exosuit) ---
+
+        [Slider("Prawn module slots", 4, 12)]
         public int ExosuitSlots { get; set; } = 8;
 
         [Toggle("Internal access (Prawn)")]
         public bool ExosuitInternalAccess { get; set; } = true;
 
-        [Header("Cyclops")]
-        [Slider("Module slots", 6, 14)]
+        // --- Cyclops ---
+
+        [Slider("Cyclops module slots", 6, 14)]
         public int CyclopsSlots { get; set; } = 10;
 
-        [Header("Quickslots")]
+        // --- Quickslots ---
+
         [Toggle("Enable quickslot extension")]
         public bool EnableQuickslotExtension { get; set; } = true;
 
@@ -50,7 +59,8 @@ namespace UtilitySlots.Config
         [Slider("In-vehicle quickslots", 4, 12)]
         public int VehicleQuickslots { get; set; } = 8;
 
-        [Header("Internal Access")]
+        // --- Internal Access général ---
+
         [Toggle("Enable internal access feature")]
         public bool EnableInternalAccess { get; set; } = true;
 

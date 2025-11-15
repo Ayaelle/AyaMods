@@ -22,17 +22,27 @@ namespace AyaCoreMod.Core
         {
             for (int i = 0; i < 300; i++)
             {
+                bool ok = false;
+
                 try
                 {
+                    // On teste un accès simple à GameInput
                     GameInput.GetBinding(GameInput.Device.Keyboard, GameInput.Button.Slot1, GameInput.BindingSet.Primary);
-                    Ready = true;
-                    break;
+                    ok = true;
                 }
                 catch
                 {
-                    // GameInput pas prêt, on attend une frame
-                    yield return null;
+                    // GameInput pas encore prêt, on ne fait rien ici
                 }
+
+                if (ok)
+                {
+                    Ready = true;
+                    break;
+                }
+
+                // On attend une frame avant de réessayer
+                yield return null;
             }
 
             Log.Info("[AyaCoreMod] InputManager.Ready = " + Ready);
