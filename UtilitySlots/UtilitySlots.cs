@@ -32,6 +32,7 @@ namespace UtilitySlots
 
             // Enregistre les options Nautilus spécifiques au mod
             Nautilus.Handlers.OptionsPanelHandler.RegisterModOptions<Options>();
+            Nautilus.Handlers.OptionsPanelHandler.RegisterModOptions<GlobalOptions>();
 
             if (FeatureFlags.SafeMode)
             {
@@ -53,15 +54,17 @@ namespace UtilitySlots
             StartCoroutine(InputManager.DelayedInit());
 
             // Récupère une fois les options (si Nautilus les a déjà créées)
-            var opt = Options.Instance;
+            //var opt = Options.Instance;
+            var gopt = GlobalOptions.Instance;
 
             // Active notre première feature (slots étendus)
             // Si tu veux la rendre optionnelle, tu peux utiliser opt.EnableExtraSlots
-            if (opt != null && opt.EnableExtraSlots)
+            if (gopt != null && gopt.EnableExtraSlots)
                 FeatureRegistry.Enable<Features.ExtraSlotsFeature.ExtraSlotsFeature>();
 
-            if (opt != null && opt.EnableInternalAccess)
-                FeatureRegistry.Enable<Features.InternalAccessFeature.InternalAccessFeature>();
+            //if (opt != null && opt.EnableInternalAccess)
+            //    FeatureRegistry.Enable<Features.InternalAccessFeature.InternalAccessFeature>();
+            FeatureRegistry.Enable<Features.InternalAccessFeature.InternalAccessFeature>();
 
             // ⚠️ QuickslotExtensionFeature n'existe pas encore → on désactive pour l'instant.
             //

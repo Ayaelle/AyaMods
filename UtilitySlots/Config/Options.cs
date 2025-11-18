@@ -1,100 +1,111 @@
 ﻿using Nautilus.Json;
-using Nautilus.Options;
 using Nautilus.Options.Attributes;
-using System;
 using UnityEngine;
 
 namespace UtilitySlots.Config
 {
-    [Menu("Utility Slots")]
+
+    /// Options "live" devant modifier le jeu à la volée
+
+    [Menu("Utility Slots (In-Game)")]
     public class Options : ConfigFile
     {
-        /// <summary>
-        /// Instance statique pour accéder facilement aux options depuis le code.
-        /// </summary>
         public static Options Instance { get; private set; }
 
-        public Options() : base("UtilitySlotsOptions")
+        public Options() : base("UtilitySlotsRuntime")
         {
             Instance = this;
         }
 
         // -----------------------------
-        //   GENERAL SETTINGS
+        // INTERNAL ACCESS (LIVE-NOT WORKING UPDATE DONT GET CALLED)
         // -----------------------------
 
-        [Toggle("Enable Seamoth Arms")]
-        public bool EnableSeamothArms = false;
+        [Toggle("Enable all internal access")]
+        public bool EnableInternalAccess { get; set; } = true;
 
-        [Slider("Player Quickslots", 4, 12, DefaultValue = 4)]
-        public int PlayerQuickSlots = 4;
+        [Toggle("Seamoth internal upgrades access")]
+        public bool SeamothInternalUpgrades { get; set; } = true;
 
-        [Slider("Vehicle Quickslots", 4, 12, DefaultValue = 4)]
-        public int VehicleQuickSlots = 4;
+        [Toggle("Seamoth internal storages access")]
+        public bool SeamothInternalStorage { get; set; } = true;
+
+        [Toggle("Prawn internal upgrades access")]
+        public bool ExosuitInternalUpgrades { get; set; } = true;
+
+        [Toggle("Prawn internal storage access")]
+        public bool ExosuitInternalStorage { get; set; } = true;
+
+        [Keybind("Internal upgrades key")]
+        public KeyCode InternalUpgradesKey = KeyCode.U;
+
+        [Keybind("Internal storage key")]
+        public KeyCode InternalStorageKey = KeyCode.I;
+    }
+
+    /// Options "globales" qui contrôlent la disposition des slots, quickslots, etc.
+    /// Les changements ici nécessitent un reload de la partie (ou du jeu) pour
+    /// être pris en compte.
+   
+    [Menu("Utility Slots (Global - restart required)")]
+    public class GlobalOptions : ConfigFile
+    {
+        public static GlobalOptions Instance { get; private set; }
+
+        public GlobalOptions() : base("UtilitySlotsGlobal")
+        {
+            Instance = this;
+        }
 
         // -----------------------------
-        //   CHIP SLOTS
+        // TOGGLE GENERAL
         // -----------------------------
 
-        [Slider("Chip Slots", 1, 12, DefaultValue = 4)]
+        [Toggle("Enable extra slots mod")]
+        public bool EnableExtraSlots { get; set; } = true;
+
+        // -----------------------------
+        // PLAYER CHIPS
+        // -----------------------------
+
+        [Slider("Player chip slots", 2, 6, DefaultValue = 4)]
         public int ChipSlots = 4;
 
         // -----------------------------
-        //   VEHICLE MODULE SLOTS
-        // -----------------------------
-        [Toggle("Enable Extra Slots")]
-        public bool EnableExtraSlots { get; set; } = true;
-
-        [Slider("Seamoth Module Slots", 2, 12, DefaultValue = 4)]
-        public int SeamothModules = 4;
-
-        [Slider("Exosuit Module Slots", 2, 12, DefaultValue = 4)]
-        public int ExosuitModules = 4;
-
-        [Slider("Cyclops Module Slots", 2, 12, DefaultValue = 6)]
-        public int CyclopsModules = 6;
-
-        // -----------------------------
-        //   INTERNAL ACCESS
+        // SEAMOTH
         // -----------------------------
 
-        /// Active ou désactive la feature d'accès interne (depuis l'intérieur
-        /// des véhicules, via des touches configurables).
+        [Slider("Seamoth module slots", 4, 12, DefaultValue = 12)]
+        public int SeamothSlots = 12;
 
-        [Toggle("Enable internal access feature")]
-        public bool EnableInternalAccess { get; set; } = true;
+        [Toggle("Enable Seamoth arms")]
+        public bool SeamothArmSlots { get; set; } = true;
 
-        /// Autorise l'accès aux UPGRADES depuis l'intérieur du véhicule.
-        /// (par type de véhicule)
+        // -----------------------------
+        // PRAWN
+        // -----------------------------
 
-        [Toggle("Internal upgrades access (Seamoth)")]
-        public bool SeamothInternalUpgrades { get; set; } = true;
+        [Slider("Prawn module slots", 4, 12, DefaultValue = 12)]
+        public int ExosuitSlots = 12;
 
-        [Toggle("Internal upgrades access (Prawn)")]
-        public bool ExosuitInternalUpgrades { get; set; } = true;
+        // -----------------------------
+        // CYCLOPS
+        // -----------------------------
 
-        /// Autorise l'accès au STOCKAGE interne depuis l'intérieur du véhicule.
-        /// (par type de véhicule)
+        [Slider("Cyclops module slots", 6, 14, DefaultValue = 14)]
+        public int CyclopsSlots = 14;
 
-        [Toggle("Internal storage access (Seamoth)")]
-        public bool SeamothInternalStorage { get; set; } = true;
+        // -----------------------------
+        // QUICKLOTS
+        // -----------------------------
 
-        [Toggle("Internal storage access (Prawn)")]
-        public bool ExosuitInternalStorage { get; set; } = true;
+        [Toggle("Enable extra quickslots")]
+        public bool EnableQuickslotExtension { get; set; } = true;
 
-        // Tu pourras ajouter le Cyclops plus tard si on décide quoi faire pour lui.
-        // [Toggle("Internal storage access (Cyclops)")]
-        // public bool CyclopsInternalStorage { get; set; } = true;
+        [Slider("On-foot quickslots", 4, 12, DefaultValue = 12)]
+        public int OnFootQuickslots = 12;
 
-        /// Touche utilisée pour ouvrir les upgrades depuis l'intérieur.
-
-        [Keybind("Internal upgrades key")]
-        public KeyCode InternalUpgradesKey { get; set; } = KeyCode.U;
-
-        /// Touche utilisée pour ouvrir le stockage depuis l'intérieur.
-
-        [Keybind("Internal storage key")]
-        public KeyCode InternalStorageKey { get; set; } = KeyCode.I;
-
+        [Slider("In-vehicle quickslots", 4, 12, DefaultValue = 12)]
+        public int VehicleQuickslots = 12;
     }
 }

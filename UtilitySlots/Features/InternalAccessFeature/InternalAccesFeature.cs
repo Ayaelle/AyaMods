@@ -5,17 +5,16 @@ using UnityEngine;
 
 namespace UtilitySlots.Features.InternalAccessFeature
 {
-    /// <summary>
+
     /// Gère l'accès interne aux upgrades et au stockage depuis l'intérieur
     /// des véhicules, en fonction des options Nautilus.
-    /// </summary>
     public class InternalAccessFeature : IFeature
     {
         private GameObject _runner;
 
         public void Enable()
         {
-            // (identique) On crée un petit GameObject persistant avec un MonoBehaviour
+            // On crée un petit GameObject persistant avec un MonoBehaviour
             // qui écoutera l'input chaque frame.
             _runner = new GameObject("UtilitySlotsInternalAccessRunner");
             Object.DontDestroyOnLoad(_runner);
@@ -31,20 +30,18 @@ namespace UtilitySlots.Features.InternalAccessFeature
             }
         }
 
-        /// <summary>
         /// Composant Unity qui tourne en jeu et gère les touches d'accès interne.
-        /// </summary>
         private class Runner : MonoBehaviour
         {
             private PDA _pda;
 
             private void Update()
             {
-                // (identique) Si GameInput n'est pas encore prêt, on ne fait rien
+                // Si GameInput n'est pas encore prêt, on ne fait rien
                 if (!InputManager.Ready)
                     return;
 
-                // (identique) Si une UI importante est ouverte (PDA, menu), on ne fait rien
+                // Si une UI importante est ouverte (PDA, menu), on ne fait rien
                 if (Guard.UIBusy())
                     return;
 
@@ -61,7 +58,7 @@ namespace UtilitySlots.Features.InternalAccessFeature
                     return;
 
                 // ----------------------------
-                // (CHANGED) On ne lit plus UNE seule touche,
+                // On ne lit plus UNE seule touche,
                 // mais deux : upgrades et stockage.
                 // ----------------------------
                 bool upgradesPressed = UnityEngine.Input.GetKeyDown(options.InternalUpgradesKey);
@@ -72,7 +69,7 @@ namespace UtilitySlots.Features.InternalAccessFeature
                     return;
 
                 // ----------------------------
-                // (CHANGED) On route selon le type de véhicule
+                // On route selon le type de véhicule
                 // et on délègue à des méthodes dédiées.
                 // ----------------------------
                 if (vehicle is SeaMoth seamoth)
@@ -86,7 +83,7 @@ namespace UtilitySlots.Features.InternalAccessFeature
             }
 
             // ----------------------------
-            // (NEW) Logique spécifique Seamoth
+            // Logique spécifique Seamoth
             // ----------------------------
             private void HandleSeamothInternalAccess(SeaMoth seamoth, Options options, bool upgradesPressed, bool storagePressed)
             {
@@ -140,7 +137,7 @@ namespace UtilitySlots.Features.InternalAccessFeature
             }
 
             // ----------------------------
-            // (NEW) Logique spécifique Exosuit
+            // Logique spécifique Exosuit
             // ----------------------------
             private void HandleExosuitInternalAccess(Exosuit exosuit, Options options, bool upgradesPressed, bool storagePressed)
             {
@@ -173,7 +170,7 @@ namespace UtilitySlots.Features.InternalAccessFeature
                 }
             }
 
-            // (CHANGED) Helper pour ouvrir le PDA (utilisé en fallback)
+            // Helper pour ouvrir le PDA (utilisé en fallback)
             private void OpenPDA()
             {
                 var player = Player.main;

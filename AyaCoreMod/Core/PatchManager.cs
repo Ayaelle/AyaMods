@@ -4,9 +4,7 @@ using System.Reflection;
 
 namespace AyaCoreMod.Core
 {
-    /// <summary>
-    /// Utilitaire pour appliquer tous les patches Harmony d'un assembly.
-    /// </summary>
+    // Utilitaire pour appliquer tous les patches Harmony d'un assembly.
     public static class PatchManager
     {
         public static void ApplyAll(Harmony harmony, Assembly assembly)
@@ -18,7 +16,7 @@ namespace AyaCoreMod.Core
             }
             catch (Exception ex)
             {
-                Log.Error("[AyaCoreMod] PatchAll failed: " + ex);
+                Log.Error("[AyaCoreMod] PatchAll failed : " + ex);
             }
         }
     }

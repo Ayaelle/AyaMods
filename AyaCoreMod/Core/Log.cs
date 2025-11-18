@@ -2,9 +2,7 @@
 
 namespace AyaCoreMod.Core
 {
-    /// <summary>
-    /// Petit wrapper autour du logger BepInEx pour pouvoir l'utiliser partout dans le core.
-    /// </summary>
+    // Petit wrapper autour du logger BepInEx pour pouvoir l'utiliser partout dans le core.
     public static class Log
     {
         private static ManualLogSource _logger;
