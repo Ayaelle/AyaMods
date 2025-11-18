@@ -53,28 +53,15 @@ namespace UtilitySlots
             // Initialise GameInput de manière sûre
             StartCoroutine(InputManager.DelayedInit());
 
-            // Récupère une fois les options (si Nautilus les a déjà créées)
-            //var opt = Options.Instance;
             var gopt = GlobalOptions.Instance;
 
-            // Active notre première feature (slots étendus)
-            // Si tu veux la rendre optionnelle, tu peux utiliser opt.EnableExtraSlots
+            // ExtraSlots : option globale
             if (gopt != null && gopt.EnableExtraSlots)
                 FeatureRegistry.Enable<Features.ExtraSlotsFeature.ExtraSlotsFeature>();
 
-            //if (opt != null && opt.EnableInternalAccess)
-            //    FeatureRegistry.Enable<Features.InternalAccessFeature.InternalAccessFeature>();
+            // InternalAccess : activé TOUJOURS, la feature lit RuntimeInternalAccessConfig.EnableInternalAccess
             FeatureRegistry.Enable<Features.InternalAccessFeature.InternalAccessFeature>();
 
-            // ⚠️ QuickslotExtensionFeature n'existe pas encore → on désactive pour l'instant.
-            //
-            // if (opt != null && opt.EnableQuickslotExtension)
-            //     FeatureRegistry.Enable<Features.QuickslotExtensionFeature.QuickslotExtensionFeature>();
-            //
-            // TODO : quand tu créeras la feature de quickslots étendus,
-            //        tu pourras décommenter ces lignes et ajouter la classe correspondante.
-
-            // On n'a besoin de bootstrapper qu'une seule fois
             SceneManager.sceneLoaded -= OnSceneLoaded;
 
             Log.Info("[UtilitySlots] Bootstrap complete.");

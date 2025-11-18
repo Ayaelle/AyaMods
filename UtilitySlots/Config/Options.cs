@@ -4,9 +4,11 @@ using UnityEngine;
 
 namespace UtilitySlots.Config
 {
-
-    /// Options "live" devant modifier le jeu à la volée
-
+    /// <summary>
+    /// Options "runtime" d'UtilitySlots, visibles dans Nautilus et
+    /// modifiables en jeu. Les setters poussent leurs valeurs dans
+    /// RuntimeInternalAccessConfig pour un comportement live.
+    /// </summary>
     [Menu("Utility Slots (In-Game)")]
     public class Options : ConfigFile
     {
@@ -15,38 +17,120 @@ namespace UtilitySlots.Config
         public Options() : base("UtilitySlotsRuntime")
         {
             Instance = this;
+
+            // Au chargement initial (lecture du JSON par Nautilus),
+            // on s'assure que la config runtime reflète bien les valeurs.
+            RuntimeInternalAccessConfig.ApplyFrom(this);
         }
 
-        // -----------------------------
-        // INTERNAL ACCESS (LIVE-NOT WORKING UPDATE DONT GET CALLED)
-        // -----------------------------
+        // ------------------------
+        // TOGGLES GLOBAUX
+        // ------------------------
+
+        private bool _enableInternalAccess = true;
 
         [Toggle("Enable all internal access")]
-        public bool EnableInternalAccess { get; set; } = true;
+        public bool EnableInternalAccess
+        {
+            get => _enableInternalAccess;
+            set
+            {
+                _enableInternalAccess = value;
+                RuntimeInternalAccessConfig.EnableInternalAccess = value;
+            }
+        }
+
+        // ------------------------
+        // SEAMOTH
+        // ------------------------
+
+        private bool _seamothInternalUpgrades = true;
 
         [Toggle("Seamoth internal upgrades access")]
-        public bool SeamothInternalUpgrades { get; set; } = true;
+        public bool SeamothInternalUpgrades
+        {
+            get => _seamothInternalUpgrades;
+            set
+            {
+                _seamothInternalUpgrades = value;
+                RuntimeInternalAccessConfig.SeamothInternalUpgrades = value;
+            }
+        }
+
+        private bool _seamothInternalStorage = true;
 
         [Toggle("Seamoth internal storages access")]
-        public bool SeamothInternalStorage { get; set; } = true;
+        public bool SeamothInternalStorage
+        {
+            get => _seamothInternalStorage;
+            set
+            {
+                _seamothInternalStorage = value;
+                RuntimeInternalAccessConfig.SeamothInternalStorage = value;
+            }
+        }
+
+        // ------------------------
+        // EXOSUIT (PRAWN)
+        // ------------------------
+
+        private bool _exosuitInternalUpgrades = true;
 
         [Toggle("Prawn internal upgrades access")]
-        public bool ExosuitInternalUpgrades { get; set; } = true;
+        public bool ExosuitInternalUpgrades
+        {
+            get => _exosuitInternalUpgrades;
+            set
+            {
+                _exosuitInternalUpgrades = value;
+                RuntimeInternalAccessConfig.ExosuitInternalUpgrades = value;
+            }
+        }
+
+        private bool _exosuitInternalStorage = true;
 
         [Toggle("Prawn internal storage access")]
-        public bool ExosuitInternalStorage { get; set; } = true;
+        public bool ExosuitInternalStorage
+        {
+            get => _exosuitInternalStorage;
+            set
+            {
+                _exosuitInternalStorage = value;
+                RuntimeInternalAccessConfig.ExosuitInternalStorage = value;
+            }
+        }
+
+        // ------------------------
+        // KEYBINDS
+        // ------------------------
+
+        private KeyCode _internalUpgradesKey = KeyCode.U;
 
         [Keybind("Internal upgrades key")]
-        public KeyCode InternalUpgradesKey = KeyCode.U;
+        public KeyCode InternalUpgradesKey
+        {
+            get => _internalUpgradesKey;
+            set
+            {
+                _internalUpgradesKey = value;
+                RuntimeInternalAccessConfig.InternalUpgradesKey = value;
+            }
+        }
+
+        private KeyCode _internalStorageKey = KeyCode.I;
 
         [Keybind("Internal storage key")]
-        public KeyCode InternalStorageKey = KeyCode.I;
+        public KeyCode InternalStorageKey
+        {
+            get => _internalStorageKey;
+            set
+            {
+                _internalStorageKey = value;
+                RuntimeInternalAccessConfig.InternalStorageKey = value;
+            }
+        }
     }
 
-    /// Options "globales" qui contrôlent la disposition des slots, quickslots, etc.
-    /// Les changements ici nécessitent un reload de la partie (ou du jeu) pour
-    /// être pris en compte.
-   
     [Menu("Utility Slots (Global - restart required)")]
     public class GlobalOptions : ConfigFile
     {
