@@ -32,7 +32,7 @@ namespace UtilitySlots
 
             // Enregistre les options Nautilus spécifiques au mod
             AyaCoreMod.Core.NautilusBootstrap.Register<GlobalOptions>();
-            AyaCoreMod.Core.NautilusBootstrap.Register<RuntimeOptions>();
+            AyaCoreMod.Core.NautilusBootstrap.Register<Options>();
             UtilitySlots.Config.Keybinds.Register();
 
             if (FeatureFlags.SafeMode)
@@ -57,11 +57,9 @@ namespace UtilitySlots
             var gopt = GlobalOptions.Instance;
 
             // ExtraSlots : option globale
-            if (gopt != null && gopt.EnableExtraSlots)
-                FeatureRegistry.Enable<Features.ExtraSlotsFeature.ExtraSlotsFeature>();
-
+            FeatureRegistry.Enable<UtilitySlots.Features.ExtraSlotsFeature.ExtraSlotsFeature>();
             // InternalAccess : activé TOUJOURS, la feature lit RuntimeInternalAccessConfig.EnableInternalAccess
-            FeatureRegistry.Enable<Features.InternalAccessFeature.InternalAccessFeature>();
+            FeatureRegistry.Enable<UtilitySlots.Features.InternalAccessFeature.InternalAccessFeature>();
 
             SceneManager.sceneLoaded -= OnSceneLoaded;
 

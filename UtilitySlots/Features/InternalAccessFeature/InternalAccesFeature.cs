@@ -5,10 +5,6 @@ using UtilitySlots.Config;
 
 namespace UtilitySlots.Features.InternalAccessFeature
 {
-    /// <summary>
-    /// Feature qui permet d'ouvrir les upgrades / stockages depuis
-    /// l'intérieur des véhicules, en fonction de la config runtime.
-    /// </summary>
     public class InternalAccessFeature : IFeature
     {
         private GameObject _runner;
@@ -18,11 +14,11 @@ namespace UtilitySlots.Features.InternalAccessFeature
             if (_runner != null)
                 return;
 
-            _runner = new GameObject("UtilitySlotsInternalAccessRunner");
+            _runner = new GameObject("UtilitySlots_InternalAccessRunner");
             Object.DontDestroyOnLoad(_runner);
             _runner.AddComponent<Runner>();
 
-            Log.Info("[UtilitySlots] InternalAccessFeature enabled.");
+            Log.Info("[UtilitySlots] InternalAccessFeature enabled (runner created).");
         }
 
         public void Disable()
@@ -31,34 +27,27 @@ namespace UtilitySlots.Features.InternalAccessFeature
             {
                 Object.Destroy(_runner);
                 _runner = null;
+                Log.Info("[UtilitySlots] InternalAccessFeature disabled (runner destroyed).");
             }
-
-            Log.Info("[UtilitySlots] InternalAccessFeature disabled.");
         }
 
-        /// <summary>
-        /// Composant Unity qui tourne réellement en jeu et lit la
-        /// config runtime à chaque frame.
-        /// </summary>
         private class Runner : MonoBehaviour
         {
-            private bool _loggedOnce = false;
+            private bool _loggedOnce;
 
             private void Update()
             {
-                // Log une seule fois pour vérifier que le Runner tourne
                 if (!_loggedOnce)
                 {
                     Log.Info("[UtilitySlots] InternalAccess Runner.Update() is running.");
                     _loggedOnce = true;
                 }
 
-                // 1) Si une UI importante est ouverte (PDA, menu, console…), on ne fait rien.
+                // UI occupée ? On ne fait rien.
                 if (Guard.UIBusy())
                     return;
 
-                // 2) Récupération directe des options Nautilus
-                var opt = RuntimeOptions.Instance;
+                var opt = Options.Instance;
                 if (opt == null || !opt.EnableInternalAccess)
                     return;
 
@@ -70,15 +59,17 @@ namespace UtilitySlots.Features.InternalAccessFeature
                 if (vehicle == null)
                     return;
 
-                // 3) Lecture des touches depuis les options
+                // appels au nouveau système d'input Nautilus
                 bool upgradesPressed = global::GameInput.GetButtonDown(Keybinds.InternalUpgrades);
                 bool storagePressed = global::GameInput.GetButtonDown(Keybinds.InternalStorage);
 
-                // Si aucune des touches n’est pressée, on quitte.
                 if (!upgradesPressed && !storagePressed)
                     return;
 
-                // 4) Dispatch selon le type de véhicule
+                // DEBUG : log une fois quand on appuie
+                Log.Info($"[UtilitySlots] Key pressed. Opts: SeamothUp={opt.SeamothInternalUpgrades}, " +
+                         $"SeamothSt={opt.SeamothInternalStorage}, ExoUp={opt.ExosuitInternalUpgrades}, ExoSt={opt.ExosuitInternalStorage}");
+
                 if (vehicle is SeaMoth seamoth)
                 {
                     HandleSeamothInternalAccess(seamoth, opt, upgradesPressed, storagePressed);
@@ -89,27 +80,29 @@ namespace UtilitySlots.Features.InternalAccessFeature
                 }
             }
 
-
-            /// <summary>
-            /// Gestion de l'accès interne pour le Seamoth.
-            /// </summary>
-            private void HandleSeamothInternalAccess(SeaMoth seamoth, RuntimeOptions opt, bool upgradesPressed, bool storagePressed)
+            private static void HandleSeamothInternalAccess(
+                SeaMoth seamoth,
+                Options opt,
+                bool upgradesPressed,
+                bool storagePressed)
             {
-                if (opt == null)
-                    return;
-
-                // Upgrades depuis l'intérieur du Seamoth
+                // Upgrades internes
                 if (upgradesPressed && opt.SeamothInternalUpgrades)
                 {
                     if (seamoth.upgradesInput != null)
                     {
                         seamoth.upgradesInput.OpenFromExternal();
-                        Log.Info("[UtilitySlots] Opened Seamoth upgrade console.");
+                        Log.Info("[UtilitySlots] Opened Seamoth upgrades (internal).");
                     }
+                    else
+                    {
+                        Log.Warn("[UtilitySlots] Seamoth.upgradesInput is null.");
+                    }
+
                     return;
                 }
 
-                // Stockage interne du Seamoth
+                // Stockage interne Seamoth
                 if (storagePressed && opt.SeamothInternalStorage)
                 {
                     try
@@ -121,48 +114,51 @@ namespace UtilitySlots.Features.InternalAccessFeature
                             return;
                         }
 
-                        // On vérifie quels slots contiennent un module de stockage
                         for (int i = 0; i < slotCount; i++)
                         {
                             var tech = seamoth.GetSlotBinding(i);
-
                             if (tech == TechType.VehicleStorageModule)
                             {
                                 var input = seamoth.storageInputs[i];
                                 if (input != null)
                                 {
                                     input.OpenFromExternal();
-                                    Log.Info("[UtilitySlots] Opened Seamoth storage (slot " + i + ").");
+                                    Log.Info($"[UtilitySlots] Opened Seamoth storage (slot {i}).");
                                     return;
                                 }
                             }
                         }
 
-                        Log.Info("[UtilitySlots] No VehicleStorageModule installed in Seamoth.");
+                        Log.Info("[UtilitySlots] No VehicleStorageModule installed on Seamoth.");
                     }
                     catch (System.Exception ex)
                     {
                         Log.Error("[UtilitySlots] Error while opening Seamoth storage: " + ex);
                     }
                 }
+
+                // Si options désactivées, on ne fait rien.
             }
 
-            /// <summary>
-            /// Gestion de l'accès interne pour l'Exosuit (Prawn).
-            /// </summary>
-            private void HandleExosuitInternalAccess(Exosuit exosuit, RuntimeOptions opt, bool upgradesPressed, bool storagePressed)
+            private static void HandleExosuitInternalAccess(
+                Exosuit exosuit,
+                Options opt,
+                bool upgradesPressed,
+                bool storagePressed)
             {
-                if (opt == null)
-                    return;
-
                 // Upgrades Prawn
                 if (upgradesPressed && opt.ExosuitInternalUpgrades)
                 {
                     if (exosuit.upgradesInput != null)
                     {
                         exosuit.upgradesInput.OpenFromExternal();
-                        Log.Info("[UtilitySlots] Opened Exosuit upgrade console.");
+                        Log.Info("[UtilitySlots] Opened Exosuit upgrades (internal).");
                     }
+                    else
+                    {
+                        Log.Warn("[UtilitySlots] Exosuit.upgradesInput is null.");
+                    }
+
                     return;
                 }
 
@@ -175,7 +171,11 @@ namespace UtilitySlots.Features.InternalAccessFeature
                         if (storage != null)
                         {
                             storage.Open();
-                            Log.Info("[UtilitySlots] Opened Exosuit storage.");
+                            Log.Info("[UtilitySlots] Opened Exosuit storage (internal).");
+                        }
+                        else
+                        {
+                            Log.Warn("[UtilitySlots] Exosuit.storageContainer is null.");
                         }
                     }
                     catch (System.Exception ex)
@@ -184,7 +184,6 @@ namespace UtilitySlots.Features.InternalAccessFeature
                     }
                 }
             }
-
         }
     }
 }

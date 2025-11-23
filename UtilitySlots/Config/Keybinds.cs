@@ -1,6 +1,4 @@
 ﻿using Nautilus.Handlers;
-using Nautilus.Utility;
-using UnityEngine.InputSystem;
 
 namespace UtilitySlots.Config
 {
@@ -11,22 +9,18 @@ namespace UtilitySlots.Config
 
         public static void Register()
         {
-            // Catégorie pour le menu "Mod Input"
-            const string category = "UtilitySlots";
 
             // --- INTERNAL UPGRADES KEY ---
             InternalUpgrades =
                 EnumHandler.AddEntry<global::GameInput.Button>("InternalUpgrades")
                     .CreateInput("Internal Upgrades Key")
-                    .WithKeyboardBinding("<Keyboard>/u")
-                    .WithCategory(category);
+                    .WithKeyboardBinding("<Keyboard>/u");
 
             // --- INTERNAL STORAGE KEY ---
             InternalStorage =
                 EnumHandler.AddEntry<global::GameInput.Button>("InternalStorage")
                     .CreateInput("Internal Storage Key")
-                    .WithKeyboardBinding("<Keyboard>/i")
-                    .WithCategory(category);
+                    .WithKeyboardBinding("<Keyboard>/i");
         }
     }
 }
