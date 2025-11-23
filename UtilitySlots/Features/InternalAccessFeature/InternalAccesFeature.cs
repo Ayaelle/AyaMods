@@ -53,16 +53,13 @@ namespace UtilitySlots.Features.InternalAccessFeature
                     _loggedOnce = true;
                 }
 
-                // 1) GameInput prêt ?
-                if (!InputManager.Ready)
-                    return;
-
-                // 2) UI occupée ?
+                // 1) Si une UI importante est ouverte (PDA, menu, console…), on ne fait rien.
                 if (Guard.UIBusy())
                     return;
 
-                // 3) Config runtime : toggle global
-                if (!RuntimeInternalAccessConfig.EnableInternalAccess)
+                // 2) Récupération directe des options Nautilus
+                var opt = RuntimeOptions.Instance;
+                if (opt == null || !opt.EnableInternalAccess)
                     return;
 
                 var player = Player.main;
@@ -73,31 +70,36 @@ namespace UtilitySlots.Features.InternalAccessFeature
                 if (vehicle == null)
                     return;
 
-                // 4) Lecture des touches depuis la config runtime
-                bool upgradesPressed = Input.GetKeyDown(RuntimeInternalAccessConfig.InternalUpgradesKey);
-                bool storagePressed = Input.GetKeyDown(RuntimeInternalAccessConfig.InternalStorageKey);
+                // 3) Lecture des touches depuis les options
+                bool upgradesPressed = global::GameInput.GetButtonDown(Keybinds.InternalUpgrades);
+                bool storagePressed = global::GameInput.GetButtonDown(Keybinds.InternalStorage);
 
+                // Si aucune des touches n’est pressée, on quitte.
                 if (!upgradesPressed && !storagePressed)
                     return;
 
-                // 5) Dispatch selon le type de véhicule
+                // 4) Dispatch selon le type de véhicule
                 if (vehicle is SeaMoth seamoth)
                 {
-                    HandleSeamothInternalAccess(seamoth, upgradesPressed, storagePressed);
+                    HandleSeamothInternalAccess(seamoth, opt, upgradesPressed, storagePressed);
                 }
                 else if (vehicle is Exosuit exosuit)
                 {
-                    HandleExosuitInternalAccess(exosuit, upgradesPressed, storagePressed);
+                    HandleExosuitInternalAccess(exosuit, opt, upgradesPressed, storagePressed);
                 }
             }
 
+
             /// <summary>
-            /// Gestion de l'accès interne pour le Seamoth (SeaMoth).
+            /// Gestion de l'accès interne pour le Seamoth.
             /// </summary>
-            private void HandleSeamothInternalAccess(SeaMoth seamoth, bool upgradesPressed, bool storagePressed)
+            private void HandleSeamothInternalAccess(SeaMoth seamoth, RuntimeOptions opt, bool upgradesPressed, bool storagePressed)
             {
+                if (opt == null)
+                    return;
+
                 // Upgrades depuis l'intérieur du Seamoth
-                if (upgradesPressed && RuntimeInternalAccessConfig.SeamothInternalUpgrades)
+                if (upgradesPressed && opt.SeamothInternalUpgrades)
                 {
                     if (seamoth.upgradesInput != null)
                     {
@@ -108,7 +110,7 @@ namespace UtilitySlots.Features.InternalAccessFeature
                 }
 
                 // Stockage interne du Seamoth
-                if (storagePressed && RuntimeInternalAccessConfig.SeamothInternalStorage)
+                if (storagePressed && opt.SeamothInternalStorage)
                 {
                     try
                     {
@@ -130,7 +132,7 @@ namespace UtilitySlots.Features.InternalAccessFeature
                                 if (input != null)
                                 {
                                     input.OpenFromExternal();
-                                    Log.Info($"[UtilitySlots] Opened Seamoth storage from slot index {i}.");
+                                    Log.Info("[UtilitySlots] Opened Seamoth storage (slot " + i + ").");
                                     return;
                                 }
                             }
@@ -148,10 +150,13 @@ namespace UtilitySlots.Features.InternalAccessFeature
             /// <summary>
             /// Gestion de l'accès interne pour l'Exosuit (Prawn).
             /// </summary>
-            private void HandleExosuitInternalAccess(Exosuit exosuit, bool upgradesPressed, bool storagePressed)
+            private void HandleExosuitInternalAccess(Exosuit exosuit, RuntimeOptions opt, bool upgradesPressed, bool storagePressed)
             {
+                if (opt == null)
+                    return;
+
                 // Upgrades Prawn
-                if (upgradesPressed && RuntimeInternalAccessConfig.ExosuitInternalUpgrades)
+                if (upgradesPressed && opt.ExosuitInternalUpgrades)
                 {
                     if (exosuit.upgradesInput != null)
                     {
@@ -162,7 +167,7 @@ namespace UtilitySlots.Features.InternalAccessFeature
                 }
 
                 // Stockage Prawn
-                if (storagePressed && RuntimeInternalAccessConfig.ExosuitInternalStorage)
+                if (storagePressed && opt.ExosuitInternalStorage)
                 {
                     try
                     {
@@ -179,6 +184,7 @@ namespace UtilitySlots.Features.InternalAccessFeature
                     }
                 }
             }
+
         }
     }
 }
