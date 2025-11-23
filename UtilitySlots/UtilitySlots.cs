@@ -47,6 +47,8 @@ namespace UtilitySlots
 
             // Hook sur le chargement de scène pour initialiser InputManager et les features
             SceneManager.sceneLoaded += OnSceneLoaded;
+
+            Log.Info($"{Name} Awake END");
         }
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -58,8 +60,13 @@ namespace UtilitySlots
 
             // ExtraSlots : option globale
             FeatureRegistry.Enable<UtilitySlots.Features.ExtraSlotsFeature.ExtraSlotsFeature>();
+            Log.Info("[UtilitySlots] ExtraSlotsFeature enabled from GlobalOptions.");
             // InternalAccess : activé TOUJOURS, la feature lit RuntimeInternalAccessConfig.EnableInternalAccess
             FeatureRegistry.Enable<UtilitySlots.Features.InternalAccessFeature.InternalAccessFeature>();
+            Log.Info("[UtilitySlots] InternalAccessFeature enabled.");
+            // Quickslots étendus : activés si l’option globale est cochée
+            FeatureRegistry.Enable<Features.QuickslotExtensionFeature.QuickslotExtensionFeature>();
+            Log.Info("[UtilitySlots] QuickslotExtensionFeature enabled from GlobalOptions.");
 
             SceneManager.sceneLoaded -= OnSceneLoaded;
 

@@ -14,6 +14,11 @@ namespace UtilitySlots.Config
         public static bool SeamothInternalStorage = true;
         public static bool ExosuitInternalUpgrades = true;
         public static bool ExosuitInternalStorage = true;
+
+        // QUICKSLOTS
+        public static bool EnableQuickslotExtension = true;
+        public static int OnFootQuickslots = 12;
+        public static int VehicleQuickslots = 12;
     }
 
     /// <summary>
@@ -68,6 +73,31 @@ namespace UtilitySlots.Config
             get => RuntimeConfig.ExosuitInternalStorage;
             set => RuntimeConfig.ExosuitInternalStorage = value;
         }
+
+        // -----------------------------
+        // QUICKLOTS
+        // -----------------------------
+
+        [Toggle("Enable extra quickslots")]
+        public bool EnableQuickslotExtension
+        {
+            get => RuntimeConfig.EnableQuickslotExtension;
+            set => RuntimeConfig.EnableQuickslotExtension = value;
+        }
+
+        [Slider("On-foot quickslots", 4, 12, DefaultValue = 12)]
+        public int OnFootQuickslots
+        {
+            get => RuntimeConfig.OnFootQuickslots;
+            set => RuntimeConfig.OnFootQuickslots = value;
+        }
+
+        [Slider("In-vehicle quickslots", 4, 12, DefaultValue = 12)]
+        public int VehicleQuickslots
+        {
+            get => RuntimeConfig.VehicleQuickslots;
+            set => RuntimeConfig.VehicleQuickslots = value;
+        }
     }
 
     /// <summary>
@@ -120,18 +150,5 @@ namespace UtilitySlots.Config
 
         [Slider("Cyclops module slots", 6, 14, DefaultValue = 14)]
         public int CyclopsSlots { get; set; } = 14;
-
-        // -----------------------------
-        // QUICKLOTS
-        // -----------------------------
-
-        [Toggle("Enable extra quickslots")]
-        public bool EnableQuickslotExtension { get; set; } = true;
-
-        [Slider("On-foot quickslots", 4, 12, DefaultValue = 12)]
-        public int OnFootQuickslots { get; set; } = 12;
-
-        [Slider("In-vehicle quickslots", 4, 12, DefaultValue = 12)]
-        public int VehicleQuickslots { get; set; } = 12;
     }
 }
