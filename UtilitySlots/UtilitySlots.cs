@@ -31,8 +31,8 @@ namespace UtilitySlots
             Log.Info($"{Name} Awake");
 
             // Enregistre les options Nautilus spécifiques au mod
-            AyaCoreMod.Core.NautilusBootstrap.Register<GlobalOptions>();
-            AyaCoreMod.Core.NautilusBootstrap.Register<Options>();
+            Nautilus.Handlers.OptionsPanelHandler.RegisterModOptions<Options>();
+            Nautilus.Handlers.OptionsPanelHandler.RegisterModOptions<GlobalOptions>();
             UtilitySlots.Config.Keybinds.Register();
 
             if (FeatureFlags.SafeMode)
