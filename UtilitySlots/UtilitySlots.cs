@@ -59,9 +59,22 @@ namespace UtilitySlots
 
             var gopt = GlobalOptions.Instance;
 
-            // ExtraSlots : option globale
-            FeatureRegistry.Enable<UtilitySlots.Features.ExtraSlotsFeature.ExtraSlotsFeature>();
-            Log.Info("[UtilitySlots] ExtraSlotsFeature enabled from GlobalOptions.");
+            // ExtraSlots : option globale, contrôlée par GlobalOptions
+            try
+            {
+                if (gopt != null && gopt.EnableExtraSlots)
+                {
+                    FeatureRegistry.Enable<UtilitySlots.Features.ExtraSlots.ExtraSlotsFeature>();
+                }
+                else
+                {
+                    Log.Info("[UtilitySlots] ExtraSlots DISABLED (GlobalOptions.EnableExtraSlots = false).");
+                }
+            }
+            catch (System.Exception e)
+            {
+                Log.Error("[UtilitySlots] Error while enabling ExtraSlots: " + e);
+            }
             // InternalAccess : activé TOUJOURS, la feature lit RuntimeInternalAccessConfig.EnableInternalAccess
             FeatureRegistry.Enable<UtilitySlots.Features.InternalAccessFeature.InternalAccessFeature>();
             Log.Info("[UtilitySlots] InternalAccessFeature enabled.");

@@ -8,8 +8,8 @@ namespace UtilitySlots.Features.QuickSlotsCore
 {
     /// <summary>
     /// Feature principale QuickSlots+.
-    /// Crée un runner MonoBehaviour qui surveille la config et le contexte
-    /// (OnFoot/Vehicle) et demande des redessins de l'UI quand nécessaire.
+    /// Crée un runner MonoBehaviour qui surveille la config runtime
+    /// et demande des redessins de l'UI quand nécessaire.
     /// </summary>
     public class QuickSlotsCoreFeature : IFeature
     {
@@ -17,8 +17,8 @@ namespace UtilitySlots.Features.QuickSlotsCore
 
         public void Enable()
         {
-            // Si tu as un toggle global, adapte la condition ici.
-            if (!RuntimeConfig.EnableInternalAccess)
+            // Correct : on vérifie bien l'option QuickSlots (pas InternalAccess !)
+            if (!RuntimeConfig.EnableQuickSlots)
             {
                 Log.Info("[UtilitySlots][Quickslots] QuickSlotsCoreFeature désactivée (config).");
                 return;
@@ -47,7 +47,6 @@ namespace UtilitySlots.Features.QuickSlotsCore
         private class Runner : MonoBehaviour
         {
             private int _lastOnFoot;
-            private int _lastVehicle;
             private bool _lastHideEmpty;
             private bool _lastShowLabels;
             private bool _lastInVehicle;
@@ -55,13 +54,12 @@ namespace UtilitySlots.Features.QuickSlotsCore
             private void Start()
             {
                 _lastOnFoot = RuntimeConfig.OnFootQuickslots;
-                _lastVehicle = RuntimeConfig.VehicleQuickslots;
                 _lastHideEmpty = RuntimeConfig.HideEmptyQuickSlots;
                 _lastShowLabels = RuntimeConfig.ShowQuickSlotLabels;
                 _lastInVehicle = IsInVehicle();
 
                 Log.Info(
-                    $"[UtilitySlots][Quickslots] Runner started. OnFoot={_lastOnFoot}, Vehicle={_lastVehicle}, InVehicle={_lastInVehicle}"
+                    $"[UtilitySlots][Quickslots] Runner started. OnFoot={_lastOnFoot}, InVehicle={_lastInVehicle}"
                 );
 
                 // Premier redraw pour s'assurer que l'UI est synchro.
@@ -70,54 +68,52 @@ namespace UtilitySlots.Features.QuickSlotsCore
 
             private void Update()
             {
-                bool changed = false;
-
                 if (!RuntimeConfig.EnableQuickSlots)
                     return;
 
                 if (Player.main == null)
                     return;
 
+                bool changed = false;
+
+                // Vérification : changement du nombre de quickslots (on foot uniquement)
                 if (_lastOnFoot != RuntimeConfig.OnFootQuickslots)
                 {
                     _lastOnFoot = RuntimeConfig.OnFootQuickslots;
                     changed = true;
                 }
 
-                if (_lastVehicle != RuntimeConfig.VehicleQuickslots)
-                {
-                    _lastVehicle = RuntimeConfig.VehicleQuickslots;
-                    changed = true;
-                }
-
+                // Hide Empty
                 if (_lastHideEmpty != RuntimeConfig.HideEmptyQuickSlots)
                 {
                     _lastHideEmpty = RuntimeConfig.HideEmptyQuickSlots;
                     changed = true;
                 }
 
+                // Labels
                 if (_lastShowLabels != RuntimeConfig.ShowQuickSlotLabels)
                 {
                     _lastShowLabels = RuntimeConfig.ShowQuickSlotLabels;
                     changed = true;
                 }
 
+                // Changement d'état à pied / en véhicule
                 bool inVehicle = IsInVehicle();
                 if (inVehicle != _lastInVehicle)
                 {
                     _lastInVehicle = inVehicle;
                     changed = true;
 
-                    Log.Info(
-                        $"[UtilitySlots][Quickslots] Contexte changé : InVehicle={_lastInVehicle}"
-                    );
+                    Log.Info($"[UtilitySlots][Quickslots] Contexte changé : InVehicle={_lastInVehicle}");
                 }
 
+                // Action si une option a changé
                 if (changed)
                 {
                     Log.Info(
-                        $"[UtilitySlots][Quickslots] Config/Context changed: OnFoot={_lastOnFoot}, Vehicle={_lastVehicle}, HideEmpty={_lastHideEmpty}, ShowLabels={_lastShowLabels}, InVehicle={_lastInVehicle}"
+                        $"[UtilitySlots][Quickslots] Config/Context changed: OnFoot={_lastOnFoot}, HideEmpty={_lastHideEmpty}, ShowLabels={_lastShowLabels}, InVehicle={_lastInVehicle}"
                     );
+
                     QuickSlotsUIManager.RequestRedraw();
                 }
             }
