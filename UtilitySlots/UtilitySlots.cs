@@ -69,15 +69,11 @@ namespace UtilitySlots
             if (gopt.EnableQuickSlots)
             {
                 FeatureRegistry.Enable<UtilitySlots.Features.QuickSlotsCore.QuickSlotsCoreFeature>();
-                Log.Info("[UtilitySlots][Quickslots] QuickSlots Core enabled");
                 FeatureRegistry.Enable<UtilitySlots.Features.QuickSlotsKeybinds.QuickSlotsKeybindsFeature>();
-                Log.Info("[UtilitySlots][Quickslots] QuickSlots Keybinds enabled");
                 FeatureRegistry.Enable<UtilitySlots.Features.QuickSlotsUI.QuickSlotsUIFeature>();
-                Log.Info("[UtilitySlots][Quickslots] QuickSlots UI enabled");
-                FeatureRegistry.Enable<UtilitySlots.Features.QuickSlotsVehicles.QuickSlotsVehicleFeature>();
-                Log.Info("[UtilitySlots][Quickslots] QuickSlots Vehicle enabled");
-                FeatureRegistry.Enable<UtilitySlots.Features.QuickSlotsCyclops.QuickSlotsCyclopsFeature>();
-                Log.Info("[UtilitySlots][Quickslots] QuickSlots Cyclops enabled");
+                //Feature qui est lié au nombre de slots d'amélioration donc inutile pour le moment.
+                //FeatureRegistry.Enable<UtilitySlots.Features.QuickSlotsVehicles.QuickSlotsVehicleFeature>();
+                //FeatureRegistry.Enable<UtilitySlots.Features.QuickSlotsCyclops.QuickSlotsCyclopsFeature>();
             }
             else
             {

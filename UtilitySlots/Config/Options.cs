@@ -21,7 +21,8 @@ namespace UtilitySlots.Config
         public static bool HideEmptyQuickSlots = false;
         public static bool ShowQuickSlotLabels = true;
         public static int OnFootQuickslots = 12;
-        public static int VehicleQuickslots = 12;
+        //Feature inutile pour le moment puisque directement lié au nombres de slot d'améliorations des véhicules.
+        //public static int VehicleQuickslots = 12;
     }
 
     /// <summary>
@@ -87,26 +88,29 @@ namespace UtilitySlots.Config
             set => RuntimeConfig.HideEmptyQuickSlots = value;
         }
 
-        [Toggle("Show Quickslots Labels (1-12)")]
+        [Toggle("Show Quickslots Labels")]
         public bool ShowQuickSlotLabels
         {
             get => RuntimeConfig.ShowQuickSlotLabels;
             set => RuntimeConfig.ShowQuickSlotLabels = value;
         }
 
-        [Slider("On-foot quickslots", 4, 12, DefaultValue = 12)]
+        [Slider("Quickslots", 4, 12, DefaultValue = 12)]
         public int OnFootQuickslots
         {
             get => RuntimeConfig.OnFootQuickslots;
             set => RuntimeConfig.OnFootQuickslots = value;
         }
 
+        /*
+         * Feture inutile puisque directement lié au nombres de slot d'améliorations des véhicules.
         [Slider("In-vehicle quickslots", 4, 12, DefaultValue = 12)]
         public int VehicleQuickslots
         {
             get => RuntimeConfig.VehicleQuickslots;
             set => RuntimeConfig.VehicleQuickslots = value;
         }
+        */
     }
 
     /// <summary>

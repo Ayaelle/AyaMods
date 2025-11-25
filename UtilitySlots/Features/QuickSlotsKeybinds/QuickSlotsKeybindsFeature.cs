@@ -1,4 +1,5 @@
-﻿using AyaCoreMod.Features;
+﻿using AyaCoreMod.Core;
+using AyaCoreMod.Features;
 
 namespace UtilitySlots.Features.QuickSlotsKeybinds
 {
@@ -10,12 +11,12 @@ namespace UtilitySlots.Features.QuickSlotsKeybinds
     {
         public void Enable()
         {
-            // Rien de spécifique ici : les patchs Harmony sont toujours actifs.
+            Log.Info("[UtilitySlots][Quickslots] QuickSlots Keybinds enabled");
         }
 
         public void Disable()
         {
-            // Idem.
+            Log.Info("[UtilitySlots][Quickslots] QuickSlots Keybinds disabled");
         }
     }
 }

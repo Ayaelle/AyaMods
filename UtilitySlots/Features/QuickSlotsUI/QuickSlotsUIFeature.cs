@@ -1,4 +1,5 @@
-﻿using AyaCoreMod.Features;
+﻿using AyaCoreMod.Core;
+using AyaCoreMod.Features;
 
 namespace UtilitySlots.Features.QuickSlotsUI
 {
@@ -13,13 +14,12 @@ namespace UtilitySlots.Features.QuickSlotsUI
     {
         public void Enable()
         {
-            // Rien à faire : les patchs Harmony sont appliqués au chargement.
+            Log.Info("[UtilitySlots][Quickslots] QuickSlots UI enabled");
         }
 
         public void Disable()
         {
-            // Rien à faire ici non plus : UtilitySlots ne supporte pas encore
-            // la dépatch Harmony dynamique — on coupe juste l’enregistrement.
+            Log.Info("[UtilitySlots][Quickslots] QuickSlots UI disabled");
         }
     }
 }
