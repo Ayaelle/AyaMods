@@ -2,6 +2,7 @@
 using AyaCoreMod.Features;
 using BepInEx;
 using HarmonyLib;
+using Nautilus.Utility;
 using System.Reflection;
 using UnityEngine.SceneManagement;
 using UtilitySlots.Config;
@@ -65,10 +66,25 @@ namespace UtilitySlots
             FeatureRegistry.Enable<UtilitySlots.Features.InternalAccessFeature.InternalAccessFeature>();
             Log.Info("[UtilitySlots] InternalAccessFeature enabled.");
             // Quickslots étendus : activés si l’option globale est cochée
-            FeatureRegistry.Enable<Features.QuickslotExtensionFeature.QuickslotExtensionFeature>();
-            Log.Info("[UtilitySlots] QuickslotExtensionFeature enabled from GlobalOptions.");
+            if (gopt.EnableQuickSlots)
+            {
+                FeatureRegistry.Enable<UtilitySlots.Features.QuickSlotsCore.QuickSlotsCoreFeature>();
+                Log.Info("[UtilitySlots][Quickslots] QuickSlots Core enabled");
+                FeatureRegistry.Enable<UtilitySlots.Features.QuickSlotsKeybinds.QuickSlotsKeybindsFeature>();
+                Log.Info("[UtilitySlots][Quickslots] QuickSlots Keybinds enabled");
+                FeatureRegistry.Enable<UtilitySlots.Features.QuickSlotsUI.QuickSlotsUIFeature>();
+                Log.Info("[UtilitySlots][Quickslots] QuickSlots UI enabled");
+                FeatureRegistry.Enable<UtilitySlots.Features.QuickSlotsVehicles.QuickSlotsVehicleFeature>();
+                Log.Info("[UtilitySlots][Quickslots] QuickSlots Vehicle enabled");
+                FeatureRegistry.Enable<UtilitySlots.Features.QuickSlotsCyclops.QuickSlotsCyclopsFeature>();
+                Log.Info("[UtilitySlots][Quickslots] QuickSlots Cyclops enabled");
+            }
+            else
+            {
+                Log.Info("[UtilitySlots][Quickslots] Quickslots extension disabled in GlobalOptions; no Quickslots patches will be applied.");
+            }
 
-            SceneManager.sceneLoaded -= OnSceneLoaded;
+                SceneManager.sceneLoaded -= OnSceneLoaded;
 
             Log.Info("[UtilitySlots] Bootstrap complete.");
         }

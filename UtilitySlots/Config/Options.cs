@@ -1,5 +1,6 @@
 ﻿using Nautilus.Json;
 using Nautilus.Options.Attributes;
+using System.Net;
 
 namespace UtilitySlots.Config
 {
@@ -16,7 +17,9 @@ namespace UtilitySlots.Config
         public static bool ExosuitInternalStorage = true;
 
         // QUICKSLOTS
-        public static bool EnableQuickslotExtension = true;
+        public static bool EnableQuickSlots = true;
+        public static bool HideEmptyQuickSlots = false;
+        public static bool ShowQuickSlotLabels = true;
         public static int OnFootQuickslots = 12;
         public static int VehicleQuickslots = 12;
     }
@@ -77,12 +80,18 @@ namespace UtilitySlots.Config
         // -----------------------------
         // QUICKLOTS
         // -----------------------------
-
-        [Toggle("Enable extra quickslots")]
-        public bool EnableQuickslotExtension
+        [Toggle("Hide Empty Slots")]
+        public bool HideEmptyQuickSlots
         {
-            get => RuntimeConfig.EnableQuickslotExtension;
-            set => RuntimeConfig.EnableQuickslotExtension = value;
+            get => RuntimeConfig.HideEmptyQuickSlots;
+            set => RuntimeConfig.HideEmptyQuickSlots = value;
+        }
+
+        [Toggle("Show Quickslots Labels (1-12)")]
+        public bool ShowQuickSlotLabels
+        {
+            get => RuntimeConfig.ShowQuickSlotLabels;
+            set => RuntimeConfig.ShowQuickSlotLabels = value;
         }
 
         [Slider("On-foot quickslots", 4, 12, DefaultValue = 12)]
@@ -150,5 +159,16 @@ namespace UtilitySlots.Config
 
         [Slider("Cyclops module slots", 6, 14, DefaultValue = 14)]
         public int CyclopsSlots { get; set; } = 14;
+
+        // -----------------------------
+        // QUICKSLOTS
+        // -----------------------------
+
+        [Toggle("Enable quickslots mod")]
+        public bool EnableQuickSlots
+        {
+            get => RuntimeConfig.EnableQuickSlots;
+            set => RuntimeConfig.EnableQuickSlots = value;
+        }
     }
 }
