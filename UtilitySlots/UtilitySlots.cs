@@ -84,9 +84,6 @@ namespace UtilitySlots
                 FeatureRegistry.Enable<UtilitySlots.Features.QuickSlotsCore.QuickSlotsCoreFeature>();
                 FeatureRegistry.Enable<UtilitySlots.Features.QuickSlotsKeybinds.QuickSlotsKeybindsFeature>();
                 FeatureRegistry.Enable<UtilitySlots.Features.QuickSlotsUI.QuickSlotsUIFeature>();
-                //Feature qui est lié au nombre de slots d'amélioration donc inutile pour le moment.
-                //FeatureRegistry.Enable<UtilitySlots.Features.QuickSlotsVehicles.QuickSlotsVehicleFeature>();
-                //FeatureRegistry.Enable<UtilitySlots.Features.QuickSlotsCyclops.QuickSlotsCyclopsFeature>();
             }
             else
             {

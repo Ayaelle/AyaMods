@@ -81,6 +81,7 @@ namespace UtilitySlots.Config
         // -----------------------------
         // QUICKLOTS
         // -----------------------------
+
         [Toggle("Hide Empty Slots")]
         public bool HideEmptyQuickSlots
         {
@@ -88,7 +89,7 @@ namespace UtilitySlots.Config
             set => RuntimeConfig.HideEmptyQuickSlots = value;
         }
 
-        [Toggle("Show Quickslots Labels")]
+        [Toggle("Show Quickslots labels")]
         public bool ShowQuickSlotLabels
         {
             get => RuntimeConfig.ShowQuickSlotLabels;
@@ -101,16 +102,6 @@ namespace UtilitySlots.Config
             get => RuntimeConfig.OnFootQuickslots;
             set => RuntimeConfig.OnFootQuickslots = value;
         }
-
-        /*
-         * Feture inutile puisque directement lié au nombres de slot d'améliorations des véhicules.
-        [Slider("In-vehicle quickslots", 4, 12, DefaultValue = 12)]
-        public int VehicleQuickslots
-        {
-            get => RuntimeConfig.VehicleQuickslots;
-            set => RuntimeConfig.VehicleQuickslots = value;
-        }
-        */
     }
 
     /// <summary>
