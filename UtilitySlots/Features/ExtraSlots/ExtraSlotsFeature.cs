@@ -7,8 +7,7 @@ namespace UtilitySlots.Features.ExtraSlots
 {
     /// <summary>
     /// Feature principale ExtraSlots.
-    /// Pour l'instant : extension des slots de puces du joueur uniquement.
-    /// Le reste (Seamoth / Exosuit / Cyclops) est désactivé temporairement.
+    /// Actuellement : gère UNIQUEMENT les slots de puce du joueur (Chip1..Chip6).
     /// </summary>
     public class ExtraSlotsFeature : IFeature
     {
@@ -43,17 +42,40 @@ namespace UtilitySlots.Features.ExtraSlots
             }
         }
 
+        /// <summary>
+        /// Runner MonoBehaviour chargé de détecter Inventory.main / equipment
+        /// et d'appeler ExpandChipSlots quand tout est prêt.
+        /// </summary>
         private class Runner : MonoBehaviour
         {
-            private bool _chipsDone;
+            private Equipment _lastEquipment;
+            private int _lastAppliedChipSlots;
 
             private void Update()
             {
-                // On attend que la partie soit chargée et que Inventory.main soit dispo
-                if (!_chipsDone && Inventory.main != null && Player.main != null)
+                var gopt = GlobalOptions.Instance;
+                if (gopt == null || !gopt.EnableExtraSlots)
+                    return;
+
+                var inventory = Inventory.main;
+                if (inventory == null)
+                    return;
+
+                var equipment = inventory.equipment;
+                if (equipment == null)
+                    return;
+
+                int desired = ExtraSlotsRuntime.GetDesiredChipSlots();
+
+                // Re-apply si :
+                // - nouvel objet Equipment (nouvelle scène / reload)
+                // - la config ChipSlots a changé
+                if (equipment != _lastEquipment || desired != _lastAppliedChipSlots)
                 {
-                    ExtraSlotsRuntime.EnsurePlayerChipSlots();
-                    _chipsDone = true;
+                    _lastEquipment = equipment;
+                    _lastAppliedChipSlots = desired;
+
+                    Log.Info($"[UtilitySlots][ExtraSlots][Player] Applied chip slots: {desired}.");
                 }
             }
         }
