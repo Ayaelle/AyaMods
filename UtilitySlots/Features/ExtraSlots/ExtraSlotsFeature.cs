@@ -22,6 +22,9 @@ namespace UtilitySlots.Features.ExtraSlots
                 return;
             }
 
+            // 1) IMPORTANT : on étend le mapping global une fois
+            ExtraSlotsCompatibilityPatches.EnsureGlobalChipSlotMapping();
+
             if (_runner != null)
                 return;
 
@@ -44,7 +47,7 @@ namespace UtilitySlots.Features.ExtraSlots
 
         /// <summary>
         /// Runner MonoBehaviour chargé de détecter Inventory.main / equipment
-        /// et d'appeler ExpandChipSlots quand tout est prêt.
+        /// et d'appeler ExpandChipSlots quand tout est prêt ou que la config change.
         /// </summary>
         private class Runner : MonoBehaviour
         {
@@ -74,6 +77,9 @@ namespace UtilitySlots.Features.ExtraSlots
                 {
                     _lastEquipment = equipment;
                     _lastAppliedChipSlots = desired;
+
+                    // 2) on applique réellement les slots supplémentaires
+                    ExtraSlotsPlayerRuntime.ExpandChipSlots(equipment);
 
                     Log.Info($"[UtilitySlots][ExtraSlots][Player] Applied chip slots: {desired}.");
                 }

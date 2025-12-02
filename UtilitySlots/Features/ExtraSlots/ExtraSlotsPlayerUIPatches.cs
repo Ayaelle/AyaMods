@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using AyaCoreMod.Core;
 using HarmonyLib;
 using UnityEngine;
@@ -6,163 +8,121 @@ using UnityEngine;
 namespace UtilitySlots.Features.ExtraSlots
 {
     /// <summary>
-    /// Gère l'affichage des slots de puce supplémentaires dans le PDA.
-    /// On se cale sur les slots Chip1/Chip2 vanilla et on place :
-    ///
-    ///     [Chip5]   [Chip6]
-    ///    [Chip3] [HEAD] [Chip4]
-    ///     [Chip1] [Chip2]
-    ///
-    /// Les slots 5/6 n'apparaissent que si le slider de ChipSlots le demande.
+    /// Patches UI du PDA (uGUI_Equipment) pour afficher Chip3 / Chip4.
+    /// On clone les slots Chip1 / Chip2, on les renomme et on les repositionne.
     /// </summary>
     [HarmonyPatch(typeof(uGUI_Equipment), "Init")]
-    public static class ExtraSlotsPlayerUIPatches
+    internal static class ExtraSlotsPlayerUIPatches
     {
-        /// <summary>
-        /// Postfix sur uGUI_Equipment.Init : on ajoute/positionne les slots de puce extra.
-        /// </summary>
-        [HarmonyPostfix]
-        public static void Init_Postfix(uGUI_Equipment __instance, Equipment equipment)
+        private static readonly FieldInfo AllSlotsField =
+            AccessTools.Field(typeof(uGUI_Equipment), "allSlots");
+
+        static void Postfix(uGUI_Equipment __instance, Equipment equipment)
         {
-            if (!ExtraSlotsRuntime.IsEnabled())
-                return;
-
-            if (equipment == null)
-                return;
-
-            // Slots internes de uGUI_Equipment
-            var allSlotsField = AccessTools.Field(typeof(uGUI_Equipment), "allSlots");
-            if (allSlotsField == null)
+            try
             {
-                Log.Warn("[UtilitySlots][ExtraSlots][PlayerUI] Cannot find uGUI_Equipment.allSlots field.");
-                return;
-            }
+                if (!ExtraSlotsRuntime.IsEnabled())
+                    return;
 
-            var allSlots = allSlotsField.GetValue(__instance) as Dictionary<string, uGUI_EquipmentSlot>;
-            if (allSlots == null)
-            {
-                Log.Warn("[UtilitySlots][ExtraSlots][PlayerUI] allSlots is null.");
-                return;
-            }
+                if (equipment == null)
+                    return;
 
-            // On a besoin au minimum de Chip1 et Chip2 vanilla comme repère
-            if (!allSlots.TryGetValue("Chip1", out var chip1Slot) || chip1Slot == null ||
-                !allSlots.TryGetValue("Chip2", out var chip2Slot) || chip2Slot == null)
-            {
-                Log.Warn("[UtilitySlots][ExtraSlots][PlayerUI] Chip1/Chip2 slots not found in uGUI_Equipment.");
-                return;
-            }
+                // Ne cible que le joueur (PDA du joueur).
+                if (equipment != Inventory.main?.equipment)
+                    return;
 
-            RectTransform chip1Rect = chip1Slot.rectTransform;
-            RectTransform chip2Rect = chip2Slot.rectTransform;
+                int desired = ExtraSlotsRuntime.GetDesiredChipSlots();
+                if (desired <= ExtraSlotsRuntime.VanillaChipSlots)
+                    return;
 
-            if (chip1Rect == null || chip2Rect == null)
-            {
-                Log.Warn("[UtilitySlots][ExtraSlots][PlayerUI] Chip1/Chip2 rectTransforms are null.");
-                return;
-            }
-
-            // Parent commun pour tous les slots de puce
-            RectTransform parent = chip1Rect.parent as RectTransform;
-            if (parent == null)
-            {
-                Log.Warn("[UtilitySlots][ExtraSlots][PlayerUI] Chip1 parent RectTransform is null.");
-                return;
-            }
-
-            // Hauteur de slot et espacement vertical
-            float slotHeight = Mathf.Abs(chip1Rect.rect.height);
-            // Espacement vertical entre chaque rangée
-            float rowOffset = slotHeight * 0.9f;   // un peu moins que 1.0 pour éviter de sortir du cadre
-            // Décalage horizontal vers l'intérieur pour la rangée du milieu (Chip3/4)
-            float colOutset = Mathf.Abs(chip2Rect.anchoredPosition.x - chip1Rect.anchoredPosition.x) * 0.25f;
-
-            Vector2 p1 = chip1Rect.anchoredPosition;
-            Vector2 p2 = chip2Rect.anchoredPosition;
-
-            Log.Info($"[UtilitySlots][ExtraSlots][PlayerUI] slotHeight={slotHeight:F1}, rowOffset={rowOffset:F1}, colInset={colOutset:F1}, chip1Pos={p1}, chip2Pos={p2}");
-
-            int desiredChips = ExtraSlotsRuntime.GetDesiredPlayerChips();
-            if (desiredChips <= 2)
-            {
-                // Rien à faire, Vanilla only.
-                return;
-            }
-
-            // ----- Rangée du milieu : Chip3 / Chip4 -----
-            // Chip3 : au-dessus de Chip1, vers le centre
-            Vector2 chip3Pos = new Vector2(
-                p1.x - colOutset,
-                p1.y + rowOffset
-            );
-
-            // Chip4 : au-dessus de Chip2, vers le centre
-            Vector2 chip4Pos = new Vector2(
-                p2.x + colOutset,
-                p2.y + rowOffset
-            );
-
-            // Crée les slots 3/4 si besoin
-            if (desiredChips >= 3)
-                EnsureChipSlotUI(__instance, allSlots, chip1Slot, parent, "Chip3", chip3Pos);
-
-            if (desiredChips >= 4)
-                EnsureChipSlotUI(__instance, allSlots, chip2Slot, parent, "Chip4", chip4Pos);
-
-            // ----- Rangée du haut : Chip5 / Chip6 -----
-            if (desiredChips >= 5)
-            {
-                Vector2 chip5Pos = new Vector2(chip3Pos.x, chip3Pos.y + rowOffset);
-                EnsureChipSlotUI(__instance, allSlots, chip1Slot, parent, "Chip5", chip5Pos);
-            }
-
-            if (desiredChips >= 6)
-            {
-                Vector2 chip6Pos = new Vector2(chip4Pos.x, chip4Pos.y + rowOffset);
-                EnsureChipSlotUI(__instance, allSlots, chip2Slot, parent, "Chip6", chip6Pos);
-            }
-        }
-
-        /// <summary>
-        /// Crée ou repositionne un slot uGUI pour un ID de chip donné.
-        /// </summary>
-        private static void EnsureChipSlotUI(
-            uGUI_Equipment ui,
-            Dictionary<string, uGUI_EquipmentSlot> allSlots,
-            uGUI_EquipmentSlot reference,
-            RectTransform parent,
-            string slotId,
-            Vector2 anchoredPos
-        )
-        {
-            if (!allSlots.TryGetValue(slotId, out var slot) || slot == null)
-            {
-                // On clone le slot de référence (Chip1/Chip2) pour garder le style vanilla
-                var cloneGO = Object.Instantiate(reference.gameObject, parent);
-                cloneGO.name = $"Slot_{slotId}";
-
-                slot = cloneGO.GetComponent<uGUI_EquipmentSlot>();
-                if (slot == null)
+                var allSlotsObj = AllSlotsField?.GetValue(__instance);
+                var allSlots = allSlotsObj as Dictionary<string, uGUI_EquipmentSlot>;
+                if (allSlots == null)
                 {
-                    Log.Warn($"[UtilitySlots][ExtraSlots][PlayerUI] Cloned GameObject for '{slotId}' has no uGUI_EquipmentSlot.");
-                    Object.Destroy(cloneGO);
+                    Log.Warn("[UtilitySlots][ExtraSlots][PlayerUI] allSlots dictionary is null.");
                     return;
                 }
 
-                slot.slot = slotId;
-                allSlots[slotId] = slot;
-                Log.Info($"[UtilitySlots][ExtraSlots][PlayerUI] Created uGUI slot for '{slotId}'.");
-            }
+                if (!allSlots.TryGetValue("Chip1", out var chip1) ||
+                    !allSlots.TryGetValue("Chip2", out var chip2) ||
+                    chip1 == null || chip2 == null)
+                {
+                    Log.Warn("[UtilitySlots][ExtraSlots][PlayerUI] Could not find Chip1/Chip2 UI slots.");
+                    return;
+                }
 
-            // Activation + position
-            slot.SetActive(true);
-            var rt = slot.rectTransform;
-            if (rt != null)
-            {
-                rt.SetParent(parent, false);
-                rt.anchoredPosition = anchoredPos;
-                Log.Info($"[UtilitySlots][ExtraSlots][PlayerUI] Positioned '{slotId}' at {anchoredPos}.");
+                var chip1Rect = chip1.GetComponent<RectTransform>();
+                var chip2Rect = chip2.GetComponent<RectTransform>();
+                if (chip1Rect == null || chip2Rect == null)
+                {
+                    Log.Warn("[UtilitySlots][ExtraSlots][PlayerUI] Chip1/Chip2 RectTransform missing.");
+                    return;
+                }
+
+                // Calcul de layout à partir des slots vanilla
+                float slotHeight = Mathf.Abs(chip1Rect.rect.height);
+                float rowOffset = slotHeight * 0.9f; // rangée du dessus
+                float colInset = Mathf.Abs(chip2Rect.anchoredPosition.x - chip1Rect.anchoredPosition.x) * 0.25f;
+
+                Vector2 p1 = chip1Rect.anchoredPosition;
+                Vector2 p2 = chip2Rect.anchoredPosition;
+
+                Log.Info($"[UtilitySlots][ExtraSlots][PlayerUI] slotHeight={slotHeight:F1}, rowOffset={rowOffset:F1}, colInset={colInset:F1}, chip1Pos={p1}, chip2Pos={p2}");
+
+                // Chip3 (gauche, rangée du haut, vers l'extérieur)
+                if (desired >= 3 && !allSlots.ContainsKey("Chip3"))
+                {
+                    var ui = CreateChipSlot(__instance, "Chip3", chip1, chip1Rect,
+                        horizontalOffset: -colInset,
+                        verticalOffset: rowOffset);
+                    allSlots["Chip3"] = ui;
+                }
+
+                // Chip4 (droite, rangée du haut, vers l'extérieur)
+                if (desired >= 4 && !allSlots.ContainsKey("Chip4"))
+                {
+                    var ui = CreateChipSlot(__instance, "Chip4", chip2, chip2Rect,
+                        horizontalOffset: +colInset,
+                        verticalOffset: rowOffset);
+                    allSlots["Chip4"] = ui;
+                }
             }
+            catch (Exception e)
+            {
+                Log.Error("[UtilitySlots][ExtraSlots][PlayerUI] Exception in uGUI_Equipment.Init postfix: " + e);
+            }
+        }
+
+        private static uGUI_EquipmentSlot CreateChipSlot(
+            uGUI_Equipment manager,
+            string slotId,
+            uGUI_EquipmentSlot template,
+            RectTransform templateRect,
+            float horizontalOffset,
+            float verticalOffset)
+        {
+            var parent = template.transform.parent;
+            var cloneGO = UnityEngine.Object.Instantiate(template.gameObject, parent);
+            cloneGO.name = $"{template.gameObject.name}_{slotId}";
+
+            var slot = cloneGO.GetComponent<uGUI_EquipmentSlot>();
+            var rect = cloneGO.GetComponent<RectTransform>();
+
+            slot.slot = slotId;
+            slot.manager = manager;
+            slot.SetActive(true);
+
+            Vector2 basePos = templateRect.anchoredPosition;
+            rect.anchoredPosition = new Vector2(
+                basePos.x + horizontalOffset,
+                basePos.y + verticalOffset
+            );
+
+            // On s'assure que le slot commence "vide"
+            slot.ClearIcon();
+
+            Log.Info($"[UtilitySlots][ExtraSlots][PlayerUI] Created uGUI slot for '{slotId}' at {rect.anchoredPosition}.");
+            return slot;
         }
     }
 }

@@ -1,53 +1,42 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using AyaCoreMod.Core;
 using HarmonyLib;
 
 namespace UtilitySlots.Features.ExtraSlots
 {
     /// <summary>
-    /// Logique runtime liée au Equipment du joueur :
-    /// on ajoute Chip3..ChipN sur l'instance d'Equipment du joueur.
+    /// Patches côté joueur (Inventory.main)
+    /// - À l'Awake de Inventory, on étend les slots de puces.
     /// </summary>
     [HarmonyPatch]
     internal static class ExtraSlotsPlayerPatches
     {
-        /// <summary>
-        /// Appelé depuis ExtraSlotsFeature.Runner quand Inventory.main.equipment est prêt.
-        /// </summary>
-        public static void ExpandChipSlots(Equipment equipment)
+        [HarmonyPatch(typeof(Inventory), "Awake")]
+        [HarmonyPostfix]
+        private static void Inventory_Awake_Postfix(Inventory __instance)
         {
-            if (equipment == null)
-                return;
-
-            if (!ExtraSlotsRuntime.IsEnabled())
-                return;
-
-            int desired = ExtraSlotsRuntime.GetDesiredChipSlots();
-            if (desired <= ExtraSlotsRuntime.MinChipSlots)
-                return;
-
-            Log.Info("[UtilitySlots][ExtraSlots][Player] Expanding player chip slots…");
-
-            // Récupérer les slots Chip déjà définis sur cet Equipment
-            var existing = new List<string>();
-            equipment.GetSlots(EquipmentType.Chip, existing);
-
-            Log.Info($"[UtilitySlots][ExtraSlots][Player] Existing chip slots ({existing.Count}): {string.Join(", ", existing)}; desired: {desired}");
-
-            // Ajouter les slots Chip3..ChipN si besoin
-            for (int i = ExtraSlotsRuntime.MinChipSlots + 1; i <= desired; i++)
+            try
             {
-                string slotId = $"Chip{i}";
-                if (!existing.Contains(slotId))
-                {
-                    Log.Info($"[UtilitySlots][ExtraSlots][Player] Ensuring Equipment slot '{slotId}' exists via AddSlot().");
-                    equipment.AddSlot(slotId);
-                }
-            }
+                if (!ExtraSlotsRuntime.IsEnabled())
+                    return;
 
-            existing.Clear();
-            equipment.GetSlots(EquipmentType.Chip, existing);
-            Log.Info($"[UtilitySlots][ExtraSlots][Player] Chip slots expanded up to: {existing.Count}.");
+                // On ne cible que l'inventaire principal du joueur
+                if (__instance != Inventory.main)
+                    return;
+
+                if (__instance.equipment == null)
+                {
+                    Log.Warn("[UtilitySlots][ExtraSlots][Player] Inventory.main.equipment is null in Awake.");
+                    return;
+                }
+
+                Log.Info("[UtilitySlots][ExtraSlots][Player] Expanding player chip slots…");
+                ExtraSlotsPlayerRuntime.ExpandChipSlots(__instance.equipment);
+            }
+            catch (Exception e)
+            {
+                Log.Error("[UtilitySlots][ExtraSlots][Player] Exception in Inventory.Awake postfix: " + e);
+            }
         }
     }
 }

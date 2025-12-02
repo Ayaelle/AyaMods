@@ -3,39 +3,40 @@
 namespace UtilitySlots.Features.ExtraSlots
 {
     /// <summary>
-    /// Runtime helpers pour ExtraSlots (ex : chip slots joueur).
+    /// Runtime helpers pour ExtraSlots (slots de puces joueur).
+    /// Ne gère que la config globale / clamps.
     /// </summary>
     public static class ExtraSlotsRuntime
     {
-        // Vanilla Subnautica
+        /// <summary>Nombre de slots vanilla.</summary>
         public const int VanillaChipSlots = 2;
 
-        // Ce qu'on autorisera quand l’UI sera 100% étendue
-        public const int MinChipSlots = 2;
-        public const int MaxChipSlots = 6;
+        /// <summary>
+        /// Hard cap actuel pour l'UI (on gère 4 puces maximum).
+        /// </summary>
+        public const int MaxChipSlots = 4;
 
         /// <summary>
-        /// ExtraSlots activé dans les options ?
+        /// ExtraSlots activé dans GlobalOptions ?
         /// </summary>
         public static bool IsEnabled()
         {
-            var gopt = GlobalOptions.Instance;
-            return gopt != null && gopt.EnableExtraSlots;
+            var g = GlobalOptions.Instance;
+            return g != null && g.EnableExtraSlots;
         }
 
         /// <summary>
-        /// Nombre demandé par le joueur (Option), clampé entre Min et Max.
+        /// Nombre de slots demandé par la config, clampé.
         /// </summary>
         public static int GetDesiredChipSlots()
         {
-            var gopt = GlobalOptions.Instance;
-            if (gopt == null || !gopt.EnableExtraSlots)
+            var g = GlobalOptions.Instance;
+            if (g == null || !g.EnableExtraSlots)
                 return VanillaChipSlots;
 
-            int requested = gopt.ChipSlots;
-
-            if (requested < MinChipSlots)
-                requested = MinChipSlots;
+            int requested = g.ChipSlots;
+            if (requested < VanillaChipSlots)
+                requested = VanillaChipSlots;
             if (requested > MaxChipSlots)
                 requested = MaxChipSlots;
 
@@ -43,11 +44,8 @@ namespace UtilitySlots.Features.ExtraSlots
         }
 
         /// <summary>
-        /// Alias utilisé par les patches UI.
+        /// Alias utilisé par certains patches UI (compat historique).
         /// </summary>
-        public static int GetDesiredPlayerChips()
-        {
-            return GetDesiredChipSlots();
-        }
+        public static int GetDesiredPlayerChips() => GetDesiredChipSlots();
     }
 }
