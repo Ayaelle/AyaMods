@@ -7,7 +7,7 @@ namespace UtilitySlots.Features.ExtraSlots
 {
     /// <summary>
     /// Feature principale ExtraSlots.
-    /// Actuellement : gère UNIQUEMENT les slots de puce du joueur (Chip1..Chip6).
+    /// Actuellement : gère UNIQUEMENT les slots de puce du joueur (Chip1..Chip4).
     /// </summary>
     public class ExtraSlotsFeature : IFeature
     {

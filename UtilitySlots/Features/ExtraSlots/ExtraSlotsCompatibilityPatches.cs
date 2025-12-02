@@ -7,26 +7,20 @@ using HarmonyLib;
 namespace UtilitySlots.Features.ExtraSlots
 {
     /// <summary>
-    /// Patches / helpers de compat pour ExtraSlots.
-    /// - Étend Equipment.slotMapping pour déclarer Chip3..Chip6 comme slots de type Chip.
-    /// - S’assure que le dictionnaire interne "equipment" contient bien Chip3..Chip6
-    ///   au moment où AddItem est appelé, pour éviter que AddItem retourne false.
-    ///
-    /// IMPORTANT : on ne patch PLUS le constructeur statique de Equipment.
-    /// On appelle explicitement EnsureGlobalChipSlotMapping() au démarrage de la feature.
+    /// Patches de compatibilité bas niveau pour les chip slots :
+    /// - Étend Equipment.slotMapping pour Chip3..Chip6 -> EquipmentType.Chip
+    /// - Étend Equipment.GetSlots pour que les items de type Chip puissent utiliser Chip3..ChipN
+    /// - Sécurise Equipment.AddItem pour que le dictionnaire interne ait bien les clés Chip3/Chip4/Chip5/Chip6.
     /// </summary>
     [HarmonyPatch]
     internal static class ExtraSlotsCompatibilityPatches
     {
-        // Champ privé static readonly Dictionary<string, EquipmentType> slotMapping
+        // slotMapping global (static Dictionary<string, EquipmentType>)
         private static readonly FieldInfo SlotMappingField =
             AccessTools.Field(typeof(Equipment), "slotMapping");
 
-        // Champ privé Dictionary<string, InventoryItem> equipment (par instance)
-        private static readonly FieldInfo EquipmentDictField =
-            AccessTools.Field(typeof(Equipment), "equipment");
-
-        private static readonly string[] ExtraChipSlots =
+        // D’autres mods peuvent vouloir aller jusqu’à 6 ; nous, on clamp runtime à 4 pour l’instant.
+        internal static readonly string[] ExtraChipSlots =
         {
             "Chip3",
             "Chip4",
@@ -35,9 +29,8 @@ namespace UtilitySlots.Features.ExtraSlots
         };
 
         /// <summary>
-        /// Approche "mod tier" :
-        /// on étend le mapping global slotId -> EquipmentType UNE SEULE FOIS,
-        /// en étant appelé depuis ExtraSlotsFeature.Enable().
+        /// Ajoute Chip1..Chip6 dans Equipment.slotMapping en tant que EquipmentType.Chip.
+        /// Appelé après le constructeur statique de Equipment.
         /// </summary>
         internal static void EnsureGlobalChipSlotMapping()
         {
@@ -65,7 +58,7 @@ namespace UtilitySlots.Features.ExtraSlots
                     }
                 }
 
-                // On force Chip1/2/3/4/5/6 à être de type Chip (sécurise aussi d’éventuels autres mods)
+                // On sécurise Chip1/Chip2 et nos slots extra
                 EnsureChipSlot("Chip1");
                 EnsureChipSlot("Chip2");
                 foreach (var slotId in ExtraChipSlots)
@@ -77,55 +70,83 @@ namespace UtilitySlots.Features.ExtraSlots
             }
         }
 
-        // --------------------------------------------------------------------
-        // 2) Garantir que le dictionnaire "equipment" contient bien Chip3..Chip6
-        //    juste avant l’exécution de AddItem.
-        //
-        //    AddItem vanilla :
-        //      if (!this.equipment.TryGetValue(slot, out inventoryItem)) return false;
-        //
-        //    Donc si la clé "Chip3" n’existe pas dans le dictionnaire d’instance,
-        //    AddItem retourne false DIRECT, même si slotMapping est OK.
-        // --------------------------------------------------------------------
-        [HarmonyPatch(typeof(Equipment), nameof(Equipment.AddItem))]
-        private static class Equipment_AddItem_Patch
+        /// <summary>
+        /// Postfix sur Equipment.GetSlots(EquipmentType itemType, List<string> results)
+        /// pour ajouter Chip3..ChipN comme slots possibles pour les items de type Chip.
+        /// C’est ce que le jeu utilise pour auto-sélectionner un slot quand on clique sur un item.
+        /// </summary>
+        [HarmonyPatch(typeof(Equipment), nameof(Equipment.GetSlots))]
+        private static class Equipment_GetSlots_Patch
         {
-            // Signature: bool AddItem(string slot, InventoryItem newItem, bool forced = false)
-            static void Prefix(Equipment __instance, string slot, InventoryItem newItem, bool forced)
+            static void Postfix(EquipmentType itemType, List<string> results)
             {
                 try
                 {
-                    if (newItem == null)
+                    if (!ExtraSlotsRuntime.IsEnabled())
                         return;
 
-                    // On ne s’intéresse qu’à nos extra slots de puce
-                    bool isExtraChip =
-                        slot == "Chip3" ||
-                        slot == "Chip4" ||
-                        slot == "Chip5" ||
-                        slot == "Chip6";
-
-                    if (!isExtraChip)
+                    if (itemType != EquipmentType.Chip)
                         return;
 
-                    if (EquipmentDictField == null)
+                    if (results == null)
+                        return;
+
+                    int desired = ExtraSlotsRuntime.GetDesiredChipSlots();
+
+                    for (int i = 3; i <= desired && i <= ExtraSlotsRuntime.MaxChipSlots; i++)
                     {
-                        Log.Warn("[UtilitySlots][ExtraSlots][Compat] Equipment.equipment field not found; cannot auto-create chip slot.");
-                        return;
+                        string slotId = $"Chip{i}";
+                        if (!results.Contains(slotId))
+                        {
+                            results.Add(slotId);
+                            Log.Info($"[UtilitySlots][ExtraSlots][Compat] GetSlots: added '{slotId}' for itemType={itemType}.");
+                        }
                     }
+                }
+                catch (Exception e)
+                {
+                    Log.Error("[UtilitySlots][ExtraSlots][Compat] Exception in Equipment.GetSlots postfix: " + e);
+                }
+            }
+        }
 
-                    var dict = EquipmentDictField.GetValue(__instance) as Dictionary<string, InventoryItem>;
+        /// <summary>
+        /// Prefix sur Equipment.AddItem(string slot, InventoryItem newItem, bool forced = false)
+        /// pour s’assurer que le dictionnaire interne this.equipment a bien une entrée pour Chip3/4/5/6.
+        /// Sans ça, le jeu loggue des erreurs quand on essaie de placer quelque chose dans un slot inconnu.
+        /// </summary>
+        [HarmonyPatch(typeof(Equipment), nameof(Equipment.AddItem))]
+        private static class Equipment_AddItem_Patch
+        {
+            static void Prefix(Equipment __instance, string slot)
+            {
+                try
+                {
+                    if (!ExtraSlotsRuntime.IsEnabled())
+                        return;
+
+                    if (string.IsNullOrEmpty(slot))
+                        return;
+
+                    if (!slot.StartsWith("Chip", StringComparison.Ordinal))
+                        return;
+
+                    if (!int.TryParse(slot.Substring(4), out int index))
+                        return;
+
+                    if (index <= ExtraSlotsRuntime.VanillaChipSlots)
+                        return; // Chip1/2 = vanilla, laisser tranquille
+
+                    // Récupère le dico privé equipment : Dictionary<string, InventoryItem>
+                    var eqField = AccessTools.Field(typeof(Equipment), "equipment");
+                    var dict = eqField?.GetValue(__instance) as Dictionary<string, InventoryItem>;
                     if (dict == null)
-                    {
-                        Log.Warn("[UtilitySlots][ExtraSlots][Compat] Equipment.equipment is null; cannot auto-create chip slot.");
                         return;
-                    }
 
-                    // Si le dictionnaire n’a pas de clé "Chip3"/"Chip4"/..., AddItem vanilla renverra false.
                     if (!dict.ContainsKey(slot))
                     {
+                        dict[slot] = null;
                         Log.Info($"[UtilitySlots][ExtraSlots][Compat] AddItem Prefix: adding missing key '{slot}' to equipment dict.");
-                        dict[slot] = null; // slot vide, comme le ferait AddSlot
                     }
                 }
                 catch (Exception e)
@@ -134,8 +155,5 @@ namespace UtilitySlots.Features.ExtraSlots
                 }
             }
         }
-
-        // NB : on NE patch plus uGUI_Equipment.CanSwitchOrSwap, ni Equipment.AllowedToAdd.
-        // Avec slotMapping étendu + dict d’instance complet, la compatibilité suit le chemin vanilla.
     }
 }

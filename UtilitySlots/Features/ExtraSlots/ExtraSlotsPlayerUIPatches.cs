@@ -10,6 +10,9 @@ namespace UtilitySlots.Features.ExtraSlots
     /// <summary>
     /// Patches UI du PDA (uGUI_Equipment) pour afficher Chip3 / Chip4.
     /// On clone les slots Chip1 / Chip2, on les renomme et on les repositionne.
+    /// Cette version est plus robuste :
+    /// - Réutilise un slot existant si déjà créé (allSlots ou hiérarchie),
+    /// - Repositionne et réactive toujours Chip3 / Chip4 à chaque Init().
     /// </summary>
     [HarmonyPatch(typeof(uGUI_Equipment), "Init")]
     internal static class ExtraSlotsPlayerUIPatches
@@ -21,6 +24,7 @@ namespace UtilitySlots.Features.ExtraSlots
         {
             try
             {
+                // ExtraSlots globalement désactivé ?
                 if (!ExtraSlotsRuntime.IsEnabled())
                     return;
 
@@ -67,24 +71,38 @@ namespace UtilitySlots.Features.ExtraSlots
                 Vector2 p1 = chip1Rect.anchoredPosition;
                 Vector2 p2 = chip2Rect.anchoredPosition;
 
-                Log.Info($"[UtilitySlots][ExtraSlots][PlayerUI] slotHeight={slotHeight:F1}, rowOffset={rowOffset:F1}, colInset={colInset:F1}, chip1Pos={p1}, chip2Pos={p2}");
+                Log.Info(
+                    $"[UtilitySlots][ExtraSlots][PlayerUI] " +
+                    $"slotHeight={slotHeight:F1}, rowOffset={rowOffset:F1}, " +
+                    $"colInset={colInset:F1}, chip1Pos={p1}, chip2Pos={p2}"
+                );
 
                 // Chip3 (gauche, rangée du haut, vers l'extérieur)
-                if (desired >= 3 && !allSlots.ContainsKey("Chip3"))
+                if (desired >= 3)
                 {
-                    var ui = CreateChipSlot(__instance, "Chip3", chip1, chip1Rect,
+                    EnsureChipSlotUI(
+                        __instance,
+                        allSlots,
+                        slotId: "Chip3",
+                        template: chip1,
+                        templateRect: chip1Rect,
                         horizontalOffset: -colInset,
-                        verticalOffset: rowOffset);
-                    allSlots["Chip3"] = ui;
+                        verticalOffset: rowOffset
+                    );
                 }
 
                 // Chip4 (droite, rangée du haut, vers l'extérieur)
-                if (desired >= 4 && !allSlots.ContainsKey("Chip4"))
+                if (desired >= 4)
                 {
-                    var ui = CreateChipSlot(__instance, "Chip4", chip2, chip2Rect,
+                    EnsureChipSlotUI(
+                        __instance,
+                        allSlots,
+                        slotId: "Chip4",
+                        template: chip2,
+                        templateRect: chip2Rect,
                         horizontalOffset: +colInset,
-                        verticalOffset: rowOffset);
-                    allSlots["Chip4"] = ui;
+                        verticalOffset: rowOffset
+                    );
                 }
             }
             catch (Exception e)
@@ -93,36 +111,73 @@ namespace UtilitySlots.Features.ExtraSlots
             }
         }
 
-        private static uGUI_EquipmentSlot CreateChipSlot(
+        /// <summary>
+        /// Crée ou réutilise un slot ChipX dans l'UI :
+        /// - Si allSlots contient déjà le slot, on le réutilise.
+        /// - Sinon, on cherche un GameObject existant dans le parent.
+        /// - Sinon, on clone le template.
+        /// Dans tous les cas, on repositionne et on réactive le slot.
+        /// </summary>
+        private static void EnsureChipSlotUI(
             uGUI_Equipment manager,
+            Dictionary<string, uGUI_EquipmentSlot> allSlots,
             string slotId,
             uGUI_EquipmentSlot template,
             RectTransform templateRect,
             float horizontalOffset,
             float verticalOffset)
         {
-            var parent = template.transform.parent;
-            var cloneGO = UnityEngine.Object.Instantiate(template.gameObject, parent);
-            cloneGO.name = $"{template.gameObject.name}_{slotId}";
+            uGUI_EquipmentSlot slot = null;
 
-            var slot = cloneGO.GetComponent<uGUI_EquipmentSlot>();
-            var rect = cloneGO.GetComponent<RectTransform>();
+            // 1) Essayer via le dictionnaire
+            if (!allSlots.TryGetValue(slotId, out slot) || slot == null)
+            {
+                // 2) Essayer de retrouver un éventuel GO déjà présent dans la hiérarchie
+                Transform parent = template.transform.parent;
+                foreach (Transform child in parent)
+                {
+                    if (child.name == slotId)
+                    {
+                        slot = child.GetComponent<uGUI_EquipmentSlot>();
+                        if (slot != null)
+                            break;
+                    }
+                }
 
-            slot.slot = slotId;
-            slot.manager = manager;
-            slot.SetActive(true);
+                // 3) Toujours rien ? On clone le template
+                if (slot == null)
+                {
+                    Transform parentTr = template.transform.parent;
+                    var cloneGO = UnityEngine.Object.Instantiate(template.gameObject, parentTr);
+                    cloneGO.name = slotId;
+
+                    slot = cloneGO.GetComponent<uGUI_EquipmentSlot>();
+                    var rect = cloneGO.GetComponent<RectTransform>();
+
+                    slot.slot = slotId;
+                    slot.manager = manager;
+                    slot.SetActive(true);
+                    slot.ClearIcon();
+
+                    allSlots[slotId] = slot;
+
+                    Log.Info($"[UtilitySlots][ExtraSlots][PlayerUI] Created uGUI slot for '{slotId}'.");
+                }
+            }
+
+            // 4) Dans tous les cas, on repositionne et on réactive
+            var slotRect = slot.GetComponent<RectTransform>();
 
             Vector2 basePos = templateRect.anchoredPosition;
-            rect.anchoredPosition = new Vector2(
+            slotRect.anchoredPosition = new Vector2(
                 basePos.x + horizontalOffset,
                 basePos.y + verticalOffset
             );
 
-            // On s'assure que le slot commence "vide"
-            slot.ClearIcon();
+            slot.SetActive(true);
+            slot.gameObject.SetActive(true);
 
-            Log.Info($"[UtilitySlots][ExtraSlots][PlayerUI] Created uGUI slot for '{slotId}' at {rect.anchoredPosition}.");
-            return slot;
+            Log.Info($"[UtilitySlots][ExtraSlots][PlayerUI] Positioned '{slotId}' at {slotRect.anchoredPosition}.");
         }
     }
 }

@@ -4,8 +4,8 @@ using AyaCoreMod.Core;
 namespace UtilitySlots.Features.ExtraSlots
 {
     /// <summary>
-    /// Runtime helper qui étend réellement l'Equipment du joueur
-    /// (ajout de Chip3 / Chip4 via Equipment.AddSlot).
+    /// Runtime helper pour étendre réellement l’Equipment du joueur
+    /// (ajout des slots Chip3 / Chip4 via Equipment.AddSlot).
     /// </summary>
     public static class ExtraSlotsPlayerRuntime
     {
@@ -26,7 +26,6 @@ namespace UtilitySlots.Features.ExtraSlots
                 string slotId = $"Chip{i}";
                 try
                 {
-                    // Equipment.AddSlot se base sur slotMapping (qu'on a patché plus haut).
                     Log.Info($"[UtilitySlots][ExtraSlots][Player] Ensuring Equipment slot '{slotId}' exists via AddSlot().");
                     equipment.AddSlot(slotId);
                 }
