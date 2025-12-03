@@ -53,7 +53,7 @@ namespace UtilitySlots.Features.QuickSlotsCore
 
             private void Start()
             {
-                _lastOnFoot = RuntimeConfig.OnFootQuickslots;
+                _lastOnFoot = -1;
                 _lastHideEmpty = RuntimeConfig.HideEmptyQuickSlots;
                 _lastShowLabels = RuntimeConfig.ShowQuickSlotLabels;
                 _lastInVehicle = IsInVehicle();

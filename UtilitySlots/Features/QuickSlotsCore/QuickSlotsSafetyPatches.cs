@@ -32,10 +32,15 @@ namespace UtilitySlots.Features.QuickSlotsCore
         {
             var binding = BindingField?.GetValue(__instance) as InventoryItem[];
             if (binding == null)
-                return false;
+            {
+                Log.Warn("[UtilitySlots][Quickslots][Safety] binding[] is null in EnsureValidIndex, skipping safety.");
+                return false; // on ne sait pas sécuriser, on laisse l’original (et on verra d’autres logs)
+            }
 
             int length = binding.Length;
             int slotCount = (int)(SlotCountField?.GetValue(__instance) ?? length);
+
+            Log.Info($"[UtilitySlots][Quickslots][Safety] EnsureValidIndex: slotID={slotID}, slotCount={slotCount}, length={length}");
 
             // Si slotCount est plus grand que le tableau, on le réduit.
             if (slotCount > length)
@@ -55,6 +60,14 @@ namespace UtilitySlots.Features.QuickSlotsCore
                 DesiredSlotField?.SetValue(__instance, -1);
 
                 // On empêche l’exécution du SelectInternal original.
+                return false;
+            }
+
+            if (slotID >= length)
+            {
+                Log.Warn($"[UtilitySlots][Quickslots][Safety] slotID={slotID} >= binding.Length={length}. Forcing deselect.");
+                ActiveSlotField?.SetValue(__instance, -1);
+                DesiredSlotField?.SetValue(__instance, -1);
                 return false;
             }
 

@@ -103,17 +103,6 @@ namespace UtilitySlots.Config
             get => RuntimeConfig.OnFootQuickslots;
             set => RuntimeConfig.OnFootQuickslots = value;
         }
-
-        // -----------------------------
-        // EXTRASLOTS
-        // -----------------------------
-
-        // [Slider("Player chip slots (in-game)", 2, 6, DefaultValue = 4)]
-        //public int PlayerChipSlots
-        //{
-        //    get => RuntimeConfig.PlayerChipSlots;
-        //    set => RuntimeConfig.PlayerChipSlots = value;
-        //}
     }
 
     /// <summary>
