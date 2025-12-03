@@ -23,7 +23,12 @@ namespace UtilitySlots.Config
         public static int OnFootQuickslots = 12;
 
         // EXTRASLOTS
+        public static bool EnableExtraSlots = true;
         public static int ChipSlots = 4;
+        public static int SeamothSlots = 12;
+        public static bool SeamothArmSlots = true;
+        public static int ExosuitSlots = 12;
+        public static int CyclopsSlots = 14;
     }
 
     /// <summary>
@@ -123,7 +128,11 @@ namespace UtilitySlots.Config
         // -----------------------------
 
         [Toggle("Enable extra slots mod")]
-        public bool EnableExtraSlots { get; set; } = true;
+        public bool EnableExtraSlots
+        {
+            get => RuntimeConfig.EnableExtraSlots;
+            set => RuntimeConfig.EnableExtraSlots = value;
+        }
 
         // -----------------------------
         // PLAYER CHIPS
@@ -141,24 +150,40 @@ namespace UtilitySlots.Config
         // -----------------------------
 
         [Slider("Seamoth module slots", 4, 12, DefaultValue = 12)]
-        public int SeamothSlots { get; set; } = 12;
+        public int SeamothSlots
+        {
+            get => RuntimeConfig.SeamothSlots;
+            set => RuntimeConfig.SeamothSlots = value;
+        }
 
         [Toggle("Enable Seamoth arms")]
-        public bool SeamothArmSlots { get; set; } = true;
+        public bool SeamothArmSlots
+        {
+            get => RuntimeConfig.SeamothArmSlots;
+            set => RuntimeConfig.SeamothArmSlots = value;
+        }
 
         // -----------------------------
         // PRAWN
         // -----------------------------
 
         [Slider("Prawn module slots", 4, 12, DefaultValue = 12)]
-        public int ExosuitSlots { get; set; } = 12;
+        public int ExosuitSlots
+        {
+            get => RuntimeConfig.ExosuitSlots;
+            set => RuntimeConfig.ExosuitSlots = value;
+        }
 
         // -----------------------------
         // CYCLOPS
         // -----------------------------
 
         [Slider("Cyclops module slots", 6, 14, DefaultValue = 14)]
-        public int CyclopsSlots { get; set; } = 14;
+        public int CyclopsSlots
+        {
+            get => RuntimeConfig.CyclopsSlots;
+            set => RuntimeConfig.CyclopsSlots = value;
+        }
 
         // -----------------------------
         // QUICKSLOTS
