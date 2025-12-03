@@ -24,6 +24,8 @@ namespace UtilitySlots.Features.QuickSlotsCore
         [HarmonyPrefix]
         public static void QuickSlots_Ctor_Prefix(ref int slotCount)
         {
+            QuickSlotsCoreFeature.EnsureRunner();
+
             int target = QuickSlotsRuntime.GetPhysicalSlots();
 
             if (target > slotCount)

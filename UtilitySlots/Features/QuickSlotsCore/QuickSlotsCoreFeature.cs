@@ -13,7 +13,31 @@ namespace UtilitySlots.Features.QuickSlotsCore
     /// </summary>
     public class QuickSlotsCoreFeature : IFeature
     {
-        private GameObject _runner;
+        private static GameObject _runner;
+
+        /// <summary>
+        /// Assure qu’un runner existe si QuickSlots est activé.
+        /// Peut être appelé depuis n’importe quel patch (ctor QuickSlots, etc.).
+        /// </summary>
+        public static void EnsureRunner()
+        {
+            // Si l’objet Unity existe encore, ne rien faire.
+            // (Unity surcharge ==, donc un GameObject détruit sera vu comme null ici)
+            if (_runner != null)
+                return;
+
+            if (!RuntimeConfig.EnableQuickSlots)
+            {
+                // Inutile de créer le runner si la feature runtime est désactivée.
+                return;
+            }
+
+            _runner = new GameObject("UtilitySlots_QuickSlotsCoreRunner");
+            Object.DontDestroyOnLoad(_runner);
+            _runner.AddComponent<Runner>();
+
+            Log.Info("[UtilitySlots][Quickslots] Core runner (re)created by EnsureRunner().");
+        }
 
         public void Enable()
         {
@@ -24,14 +48,8 @@ namespace UtilitySlots.Features.QuickSlotsCore
                 return;
             }
 
-            if (_runner != null)
-                return;
-
-            _runner = new GameObject("UtilitySlots_QuickSlotsCoreRunner");
-            Object.DontDestroyOnLoad(_runner);
-            _runner.AddComponent<Runner>();
-
-            Log.Info("[UtilitySlots][Quickslots] Core feature enabled.");
+            EnsureRunner();
+            Log.Info("[UtilitySlots][Quickslots] Core feature enabled (EnsureRunner called).");
         }
 
         public void Disable()
@@ -50,6 +68,7 @@ namespace UtilitySlots.Features.QuickSlotsCore
             private bool _lastHideEmpty;
             private bool _lastShowLabels;
             private bool _lastInVehicle;
+            private bool _loggedDisabled;
 
             private void Start()
             {
@@ -69,7 +88,16 @@ namespace UtilitySlots.Features.QuickSlotsCore
             private void Update()
             {
                 if (!RuntimeConfig.EnableQuickSlots)
+                {
+                    if (!_loggedDisabled)
+                    {
+                        Log.Info("[UtilitySlots][Quickslots] Runner disabled by config (EnableQuickSlots = false).");
+                        _loggedDisabled = true;
+                    }
                     return;
+                }
+
+                _loggedDisabled = false;
 
                 if (Player.main == null)
                     return;

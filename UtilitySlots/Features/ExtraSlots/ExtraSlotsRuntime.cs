@@ -1,98 +1,56 @@
-﻿using AyaCoreMod.Core;
-using UnityEngine;
-using UtilitySlots.Config;
+﻿using UtilitySlots.Config;
 
 namespace UtilitySlots.Features.ExtraSlots
 {
     /// <summary>
-    /// Runtime helper pour tout ce qui concerne les slots supplémentaires.
-    /// Pour l'instant : uniquement les slots de puces du joueur.
+    /// Runtime helpers pour ExtraSlots (principalement les slots de puces joueur).
+    /// Source de vérité pour le nombre de chip slots.
     /// </summary>
     public static class ExtraSlotsRuntime
     {
+        /// <summary> Nombre de slots vanilla. </summary>
         public const int VanillaChipSlots = 2;
+
+        /// <summary> Minimum configurable (au moins vanilla). </summary>
+        public const int MinChipSlots = VanillaChipSlots;
+
+        /// <summary> Borne max physique que l’on gère. </summary>
         public const int MaxChipSlots = 6;
 
-        private static bool _chipsInitialized;
-
-        /// <summary>
-        /// Appelé depuis le runner de ExtraSlotsFeature.
-        /// Étend les slots de puces du joueur (gameplay, pas UI).
-        /// </summary>
-        public static void EnsurePlayerChipSlots()
+        /// <summary> True si ExtraSlots est activé dans les options globales. </summary>
+        public static bool IsEnabled()
         {
-            if (_chipsInitialized)
-                return;
-
             var gopt = GlobalOptions.Instance;
-            if (gopt == null || !gopt.EnableExtraSlots)
-                return;
-
-            int desired = Mathf.Clamp(gopt.ChipSlots, VanillaChipSlots, MaxChipSlots);
-
-            // Rien à faire si on reste sur le vanilla.
-            if (desired <= VanillaChipSlots)
-            {
-                Log.Info("[UtilitySlots][ExtraSlots][Player] ChipSlots = vanilla, no expansion.");
-                _chipsInitialized = true;
-                return;
-            }
-
-            // On s'assure que les nouveaux slots sont connus du système d'équipement.
-            try
-            {
-                ExpandPlayerChipEquipment(desired);
-                _chipsInitialized = true;
-            }
-            catch (System.Exception ex)
-            {
-                Log.Error($"[UtilitySlots][ExtraSlots][Player] EnsurePlayerChipSlots failed: {ex}");
-            }
+            return gopt != null && gopt.EnableExtraSlots;
         }
 
         /// <summary>
-        /// Étend les slots de puces côté Equipment/Inventory :
-        /// - ajoute Chip3..ChipN dans Equipment.slotMapping (type Chip)
-        /// - appelle Inventory.main.equipment.AddSlot("ChipX") pour chaque nouveau slot.
+        /// Nombre de chip slots "désirés" par la config, clampé entre MinChipSlots et MaxChipSlots.
+        /// C'est le nombre de slots réellement utilisés/affichés.
         /// </summary>
-        private static void ExpandPlayerChipEquipment(int desired)
+        public static int GetDesiredChipSlots()
         {
-            Log.Info($"[UtilitySlots][ExtraSlots][Player] Expanding chip slots up to {desired}.");
+            if (!IsEnabled())
+                return VanillaChipSlots;
 
-            // 1) Étendre le slotMapping statique pour Chip3..ChipN
-            for (int i = VanillaChipSlots + 1; i <= desired; i++)
-            {
-                string slotId = $"Chip{i}";
+            var gopt = GlobalOptions.Instance;
+            int requested = gopt != null ? gopt.ChipSlots : VanillaChipSlots;
 
-                if (!Equipment.slotMapping.ContainsKey(slotId))
-                {
-                    Equipment.slotMapping.Add(slotId, EquipmentType.Chip);
-                    Log.Info($"[UtilitySlots][ExtraSlots][Player] slotMapping['{slotId}'] = EquipmentType.Chip");
-                }
-            }
+            if (requested < MinChipSlots)
+                requested = MinChipSlots;
 
-            // 2) Ajouter réellement les slots dans l'équipement du joueur
-            Inventory inv = Inventory.main;
-            if (inv == null)
-            {
-                Log.Warn("[UtilitySlots][ExtraSlots][Player] Inventory.main is null; will retry later.");
-                return;
-            }
+            if (requested > MaxChipSlots)
+                requested = MaxChipSlots;
 
-            Equipment eq = inv.equipment;
-            if (eq == null)
-            {
-                Log.Warn("[UtilitySlots][ExtraSlots][Player] Inventory.main.equipment is null; will retry later.");
-                return;
-            }
+            return requested;
+        }
 
-            for (int i = VanillaChipSlots + 1; i <= desired; i++)
-            {
-                string slotId = $"Chip{i}";
-                // AddSlot est idempotent : si le slot existe déjà, il ne fera rien.
-                bool added = eq.AddSlot(slotId);
-                Log.Info($"[UtilitySlots][ExtraSlots][Player] AddSlot('{slotId}') -> {added}");
-            }
+        /// <summary>
+        /// Alias pour compat avec certains patches UI.
+        /// </summary>
+        public static int GetDesiredPlayerChips()
+        {
+            return GetDesiredChipSlots();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using System;
 
 namespace AyaCoreMod.Core
 {
@@ -15,5 +16,13 @@ namespace AyaCoreMod.Core
         public static void Info(string message) => _logger?.LogInfo(message);
         public static void Warn(string message) => _logger?.LogWarning(message);
         public static void Error(string message) => _logger?.LogError(message);
+        public static void Error(Exception exception, string message)
+        {
+            if (_logger == null)
+                return;
+
+            _logger.LogError(message);
+            _logger.LogError(exception);
+        }
     }
 }
