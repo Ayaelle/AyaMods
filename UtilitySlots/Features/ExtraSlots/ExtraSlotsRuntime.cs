@@ -11,15 +11,13 @@ namespace UtilitySlots.Features.ExtraSlots
         /// <summary> Nombre de slots vanilla. </summary>
         public const int VanillaChipSlots = 2;
 
-        /// <summary>
-        /// Pour l’instant on ne gère l’UI que jusqu’à 4 slots.
-        /// Si plus tard on veut aller jusque 6, il faudra aussi étendre l’UI.
-        /// </summary>
-        public const int MaxChipSlots = 4;
+        /// <summary> Minimum configurable (au moins vanilla). </summary>
+        public const int MinChipSlots = VanillaChipSlots;
 
-        /// <summary>
-        /// True si ExtraSlots est activé dans les options globales.
-        /// </summary>
+        /// <summary> Borne max physique que l’on gère. </summary>
+        public const int MaxChipSlots = 6;
+
+        /// <summary> True si ExtraSlots est activé dans les options globales. </summary>
         public static bool IsEnabled()
         {
             var gopt = GlobalOptions.Instance;
@@ -27,7 +25,8 @@ namespace UtilitySlots.Features.ExtraSlots
         }
 
         /// <summary>
-        /// Nombre de chip slots demandés par la config, clampé entre VanillaChipSlots et MaxChipSlots.
+        /// Nombre de chip slots "désirés" par la config, clampé entre MinChipSlots et MaxChipSlots.
+        /// C'est le nombre de slots réellement utilisés/affichés.
         /// </summary>
         public static int GetDesiredChipSlots()
         {
@@ -35,15 +34,23 @@ namespace UtilitySlots.Features.ExtraSlots
             if (gopt == null || !gopt.EnableExtraSlots)
                 return VanillaChipSlots;
 
-            int requested = gopt.ChipSlots;
+            int requested = RuntimeConfig.PlayerChipSlots;
 
-            if (requested < VanillaChipSlots)
-                requested = VanillaChipSlots;
+            if (requested < MinChipSlots)
+                requested = MinChipSlots;
 
             if (requested > MaxChipSlots)
                 requested = MaxChipSlots;
 
             return requested;
+        }
+
+        /// <summary>
+        /// Nombre de slots "physiques" à créer côté Equipment (hard, toujours MaxChipSlots).
+        /// </summary>
+        public static int GetHardChipSlots()
+        {
+            return MaxChipSlots;
         }
 
         /// <summary>

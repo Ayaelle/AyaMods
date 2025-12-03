@@ -5,7 +5,7 @@ namespace UtilitySlots.Features.ExtraSlots
 {
     /// <summary>
     /// Runtime helper pour étendre réellement l’Equipment du joueur
-    /// (ajout des slots Chip3 / Chip4 via Equipment.AddSlot).
+    /// (ajout des slots Chip3..Chip6 via Equipment.AddSlot).
     /// </summary>
     public static class ExtraSlotsPlayerRuntime
     {
@@ -17,11 +17,11 @@ namespace UtilitySlots.Features.ExtraSlots
                 return;
             }
 
-            int desired = ExtraSlotsRuntime.GetDesiredChipSlots();
-            if (desired <= ExtraSlotsRuntime.VanillaChipSlots)
+            int hard = ExtraSlotsRuntime.GetHardChipSlots();
+            if (hard <= ExtraSlotsRuntime.VanillaChipSlots)
                 return;
 
-            for (int i = ExtraSlotsRuntime.VanillaChipSlots + 1; i <= desired; i++)
+            for (int i = ExtraSlotsRuntime.VanillaChipSlots + 1; i <= hard; i++)
             {
                 string slotId = $"Chip{i}";
                 try
@@ -35,7 +35,8 @@ namespace UtilitySlots.Features.ExtraSlots
                 }
             }
 
-            Log.Info($"[UtilitySlots][ExtraSlots][Player] Chip slots expanded up to: {desired}.");
+            int desired = ExtraSlotsRuntime.GetDesiredChipSlots();
+            Log.Info($"[UtilitySlots][ExtraSlots][Player] Chip slots expanded (hard) up to: {hard}. Desired/active: {desired}.");
         }
     }
 }

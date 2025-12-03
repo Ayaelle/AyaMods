@@ -15,11 +15,9 @@ namespace UtilitySlots.Features.ExtraSlots
     [HarmonyPatch]
     internal static class ExtraSlotsCompatibilityPatches
     {
-        // slotMapping global (static Dictionary<string, EquipmentType>)
         private static readonly FieldInfo SlotMappingField =
             AccessTools.Field(typeof(Equipment), "slotMapping");
 
-        // D’autres mods peuvent vouloir aller jusqu’à 6 ; nous, on clamp runtime à 4 pour l’instant.
         internal static readonly string[] ExtraChipSlots =
         {
             "Chip3",
@@ -28,10 +26,6 @@ namespace UtilitySlots.Features.ExtraSlots
             "Chip6"
         };
 
-        /// <summary>
-        /// Ajoute Chip1..Chip6 dans Equipment.slotMapping en tant que EquipmentType.Chip.
-        /// Appelé après le constructeur statique de Equipment.
-        /// </summary>
         internal static void EnsureGlobalChipSlotMapping()
         {
             try
@@ -58,7 +52,6 @@ namespace UtilitySlots.Features.ExtraSlots
                     }
                 }
 
-                // On sécurise Chip1/Chip2 et nos slots extra
                 EnsureChipSlot("Chip1");
                 EnsureChipSlot("Chip2");
                 foreach (var slotId in ExtraChipSlots)
@@ -70,11 +63,6 @@ namespace UtilitySlots.Features.ExtraSlots
             }
         }
 
-        /// <summary>
-        /// Postfix sur Equipment.GetSlots(EquipmentType itemType, List<string> results)
-        /// pour ajouter Chip3..ChipN comme slots possibles pour les items de type Chip.
-        /// C’est ce que le jeu utilise pour auto-sélectionner un slot quand on clique sur un item.
-        /// </summary>
         [HarmonyPatch(typeof(Equipment), nameof(Equipment.GetSlots))]
         private static class Equipment_GetSlots_Patch
         {
@@ -110,11 +98,6 @@ namespace UtilitySlots.Features.ExtraSlots
             }
         }
 
-        /// <summary>
-        /// Prefix sur Equipment.AddItem(string slot, InventoryItem newItem, bool forced = false)
-        /// pour s’assurer que le dictionnaire interne this.equipment a bien une entrée pour Chip3/4/5/6.
-        /// Sans ça, le jeu loggue des erreurs quand on essaie de placer quelque chose dans un slot inconnu.
-        /// </summary>
         [HarmonyPatch(typeof(Equipment), nameof(Equipment.AddItem))]
         private static class Equipment_AddItem_Patch
         {
@@ -135,9 +118,8 @@ namespace UtilitySlots.Features.ExtraSlots
                         return;
 
                     if (index <= ExtraSlotsRuntime.VanillaChipSlots)
-                        return; // Chip1/2 = vanilla, laisser tranquille
+                        return; // Chip1/2 = vanilla
 
-                    // Récupère le dico privé equipment : Dictionary<string, InventoryItem>
                     var eqField = AccessTools.Field(typeof(Equipment), "equipment");
                     var dict = eqField?.GetValue(__instance) as Dictionary<string, InventoryItem>;
                     if (dict == null)

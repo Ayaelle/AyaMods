@@ -21,8 +21,9 @@ namespace UtilitySlots.Config
         public static bool HideEmptyQuickSlots = false;
         public static bool ShowQuickSlotLabels = true;
         public static int OnFootQuickslots = 12;
-        //Feature inutile pour le moment puisque directement lié au nombres de slot d'améliorations des véhicules.
-        //public static int VehicleQuickslots = 12;
+
+        // EXTRASLOTS
+        public static int PlayerChipSlots = 4;
     }
 
     /// <summary>
@@ -79,7 +80,7 @@ namespace UtilitySlots.Config
         }
 
         // -----------------------------
-        // QUICKLOTS
+        // QUICKSLOTS
         // -----------------------------
 
         [Toggle("Hide Empty Slots")]
@@ -101,6 +102,17 @@ namespace UtilitySlots.Config
         {
             get => RuntimeConfig.OnFootQuickslots;
             set => RuntimeConfig.OnFootQuickslots = value;
+        }
+
+        // -----------------------------
+        // EXTRASLOTS
+        // -----------------------------
+
+        [Slider("Player chip slots (in-game)", 2, 6, DefaultValue = 4)]
+        public int PlayerChipSlots
+        {
+            get => RuntimeConfig.PlayerChipSlots;
+            set => RuntimeConfig.PlayerChipSlots = value;
         }
     }
 
@@ -128,8 +140,8 @@ namespace UtilitySlots.Config
         // PLAYER CHIPS
         // -----------------------------
 
-        [Slider("Player chip slots", 2, 6, DefaultValue = 4)]
-        public int ChipSlots { get; set; } = 4;
+        // [Slider("Player chip slots", 2, 6, DefaultValue = 4)]
+        // public int ChipSlots { get; set; } = 4;
 
         // -----------------------------
         // SEAMOTH

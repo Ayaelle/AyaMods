@@ -10,17 +10,18 @@ namespace UtilitySlots.Features.ExtraSlots
         {
             try
             {
-                int desired = ExtraSlotsRuntime.GetDesiredChipSlots();
-                if (desired <= 2) return;
+                int hard = ExtraSlotsRuntime.GetHardChipSlots();
+                if (hard <= ExtraSlotsRuntime.VanillaChipSlots)
+                    return;
 
                 var eq = __instance.equipment;
-                if (eq == null) return;
+                if (eq == null)
+                    return;
 
-                for (int i = 3; i <= desired; i++)
+                for (int i = ExtraSlotsRuntime.VanillaChipSlots + 1; i <= hard; i++)
                 {
                     string slot = $"Chip{i}";
                     Log.Info($"[UtilitySlots][ExtraSlots][UnlockPatch] Adding chip slot '{slot}' via Equipment.AddSlots().");
-
                     eq.AddSlots(new[] { slot });
                 }
             }

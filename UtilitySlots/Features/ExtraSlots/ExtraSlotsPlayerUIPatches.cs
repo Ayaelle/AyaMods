@@ -8,11 +8,8 @@ using UnityEngine;
 namespace UtilitySlots.Features.ExtraSlots
 {
     /// <summary>
-    /// Patches UI du PDA (uGUI_Equipment) pour afficher Chip3 / Chip4.
+    /// Patches UI du PDA (uGUI_Equipment) pour afficher Chip3..Chip6.
     /// On clone les slots Chip1 / Chip2, on les renomme et on les repositionne.
-    /// Cette version est plus robuste :
-    /// - Réutilise un slot existant si déjà créé (allSlots ou hiérarchie),
-    /// - Repositionne et réactive toujours Chip3 / Chip4 à chaque Init().
     /// </summary>
     [HarmonyPatch(typeof(uGUI_Equipment), "Init")]
     internal static class ExtraSlotsPlayerUIPatches
@@ -24,20 +21,17 @@ namespace UtilitySlots.Features.ExtraSlots
         {
             try
             {
-                // ExtraSlots globalement désactivé ?
                 if (!ExtraSlotsRuntime.IsEnabled())
                     return;
 
                 if (equipment == null)
                     return;
 
-                // Ne cible que le joueur (PDA du joueur).
                 if (equipment != Inventory.main?.equipment)
                     return;
 
                 int desired = ExtraSlotsRuntime.GetDesiredChipSlots();
-                if (desired <= ExtraSlotsRuntime.VanillaChipSlots)
-                    return;
+                int hard = ExtraSlotsRuntime.GetHardChipSlots();
 
                 var allSlotsObj = AllSlotsField?.GetValue(__instance);
                 var allSlots = allSlotsObj as Dictionary<string, uGUI_EquipmentSlot>;
@@ -63,9 +57,8 @@ namespace UtilitySlots.Features.ExtraSlots
                     return;
                 }
 
-                // Calcul de layout à partir des slots vanilla
                 float slotHeight = Mathf.Abs(chip1Rect.rect.height);
-                float rowOffset = slotHeight * 0.9f; // rangée du dessus
+                float rowOffset = slotHeight * 0.9f;
                 float colInset = Mathf.Abs(chip2Rect.anchoredPosition.x - chip1Rect.anchoredPosition.x) * 0.25f;
 
                 Vector2 p1 = chip1Rect.anchoredPosition;
@@ -77,32 +70,50 @@ namespace UtilitySlots.Features.ExtraSlots
                     $"colInset={colInset:F1}, chip1Pos={p1}, chip2Pos={p2}"
                 );
 
-                // Chip3 (gauche, rangée du haut, vers l'extérieur)
-                if (desired >= 3)
+                // Création/réutilisation de Chip3..Chip6 (hard max) puis activation selon desired
+                for (int i = 3; i <= hard; i++)
                 {
+                    string slotId = $"Chip{i}";
+
+                    bool isLeft = (i % 2) == 1;     // 3,5 = gauche ; 4,6 = droite
+                    bool isUpperRow = (i <= 4);    // 3,4 = haut ; 5,6 = bas    
+                    int rowIndex = isUpperRow ? 1 : 2; // 3/4 sur la première rangée, 5/6 sur la seconde
+
+                    float verticalOffset = rowOffset * rowIndex;
+                    float horizontalOffset = 0f;
+
+                    if (isUpperRow)
+                        horizontalOffset = isLeft ? -colInset : colInset;
+
+                    var template = isLeft ? chip1 : chip2;
+                    var templateRect = isLeft ? chip1Rect : chip2Rect;
+
                     EnsureChipSlotUI(
                         __instance,
                         allSlots,
-                        slotId: "Chip3",
-                        template: chip1,
-                        templateRect: chip1Rect,
-                        horizontalOffset: -colInset,
-                        verticalOffset: rowOffset
+                        slotId: slotId,
+                        template: template,
+                        templateRect: templateRect,
+                        horizontalOffset: horizontalOffset,
+                        verticalOffset: verticalOffset
                     );
                 }
 
-                // Chip4 (droite, rangée du haut, vers l'extérieur)
-                if (desired >= 4)
+                // Activation/visibilité suivant le nombre de slots désirés
+                for (int i = 3; i <= hard; i++)
                 {
-                    EnsureChipSlotUI(
-                        __instance,
-                        allSlots,
-                        slotId: "Chip4",
-                        template: chip2,
-                        templateRect: chip2Rect,
-                        horizontalOffset: +colInset,
-                        verticalOffset: rowOffset
-                    );
+                    string slotId = $"Chip{i}";
+                    bool active = i <= desired;
+
+                    if (allSlots.TryGetValue(slotId, out var slot) && slot != null)
+                    {
+                        var go = slot.gameObject;
+                        slot.SetActive(active);
+                        if (go != null)
+                            go.SetActive(active);
+
+                        Log.Info($"[UtilitySlots][ExtraSlots][PlayerUI] Slot '{slotId}' active={active} (desired={desired}, hard={hard}).");
+                    }
                 }
             }
             catch (Exception e)
@@ -116,7 +127,8 @@ namespace UtilitySlots.Features.ExtraSlots
         /// - Si allSlots contient déjà le slot, on le réutilise.
         /// - Sinon, on cherche un GameObject existant dans le parent.
         /// - Sinon, on clone le template.
-        /// Dans tous les cas, on repositionne et on réactive le slot.
+        /// Dans tous les cas, on repositionne et on réactive le slot
+        /// (l'état final actif/inactif est appliqué après dans la boucle principale).
         /// </summary>
         private static void EnsureChipSlotUI(
             uGUI_Equipment manager,
@@ -129,10 +141,8 @@ namespace UtilitySlots.Features.ExtraSlots
         {
             uGUI_EquipmentSlot slot = null;
 
-            // 1) Essayer via le dictionnaire
             if (!allSlots.TryGetValue(slotId, out slot) || slot == null)
             {
-                // 2) Essayer de retrouver un éventuel GO déjà présent dans la hiérarchie
                 Transform parent = template.transform.parent;
                 foreach (Transform child in parent)
                 {
@@ -144,7 +154,6 @@ namespace UtilitySlots.Features.ExtraSlots
                     }
                 }
 
-                // 3) Toujours rien ? On clone le template
                 if (slot == null)
                 {
                     Transform parentTr = template.transform.parent;
@@ -165,7 +174,6 @@ namespace UtilitySlots.Features.ExtraSlots
                 }
             }
 
-            // 4) Dans tous les cas, on repositionne et on réactive
             var slotRect = slot.GetComponent<RectTransform>();
 
             Vector2 basePos = templateRect.anchoredPosition;
