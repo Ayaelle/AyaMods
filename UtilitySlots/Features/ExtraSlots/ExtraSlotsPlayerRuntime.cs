@@ -17,11 +17,11 @@ namespace UtilitySlots.Features.ExtraSlots
                 return;
             }
 
-            int hard = ExtraSlotsRuntime.GetHardChipSlots();
-            if (hard <= ExtraSlotsRuntime.VanillaChipSlots)
+            int desired = ExtraSlotsRuntime.GetDesiredChipSlots();
+            if (desired <= ExtraSlotsRuntime.VanillaChipSlots)
                 return;
 
-            for (int i = ExtraSlotsRuntime.VanillaChipSlots + 1; i <= hard; i++)
+            for (int i = ExtraSlotsRuntime.VanillaChipSlots + 1; i <= desired; i++)
             {
                 string slotId = $"Chip{i}";
                 try
@@ -35,8 +35,7 @@ namespace UtilitySlots.Features.ExtraSlots
                 }
             }
 
-            int desired = ExtraSlotsRuntime.GetDesiredChipSlots();
-            Log.Info($"[UtilitySlots][ExtraSlots][Player] Chip slots expanded (hard) up to: {hard}. Desired/active: {desired}.");
+            Log.Info($"[UtilitySlots][ExtraSlots][Player] Chip slots expanded up to: {desired}.");
         }
     }
 }

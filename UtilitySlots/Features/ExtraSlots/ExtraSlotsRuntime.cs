@@ -30,11 +30,11 @@ namespace UtilitySlots.Features.ExtraSlots
         /// </summary>
         public static int GetDesiredChipSlots()
         {
-            var gopt = GlobalOptions.Instance;
-            if (gopt == null || !gopt.EnableExtraSlots)
+            if (!IsEnabled())
                 return VanillaChipSlots;
 
-            int requested = RuntimeConfig.PlayerChipSlots;
+            var gopt = GlobalOptions.Instance;
+            int requested = gopt != null ? gopt.ChipSlots : VanillaChipSlots;
 
             if (requested < MinChipSlots)
                 requested = MinChipSlots;
@@ -43,14 +43,6 @@ namespace UtilitySlots.Features.ExtraSlots
                 requested = MaxChipSlots;
 
             return requested;
-        }
-
-        /// <summary>
-        /// Nombre de slots "physiques" à créer côté Equipment (hard, toujours MaxChipSlots).
-        /// </summary>
-        public static int GetHardChipSlots()
-        {
-            return MaxChipSlots;
         }
 
         /// <summary>

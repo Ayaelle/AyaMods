@@ -31,7 +31,6 @@ namespace UtilitySlots.Features.ExtraSlots
                     return;
 
                 int desired = ExtraSlotsRuntime.GetDesiredChipSlots();
-                int hard = ExtraSlotsRuntime.GetHardChipSlots();
 
                 var allSlotsObj = AllSlotsField?.GetValue(__instance);
                 var allSlots = allSlotsObj as Dictionary<string, uGUI_EquipmentSlot>;
@@ -70,8 +69,8 @@ namespace UtilitySlots.Features.ExtraSlots
                     $"colInset={colInset:F1}, chip1Pos={p1}, chip2Pos={p2}"
                 );
 
-                // Création/réutilisation de Chip3..Chip6 (hard max) puis activation selon desired
-                for (int i = 3; i <= hard; i++)
+                // Création/réutilisation de Chip3..Chip6 puis activation selon desired
+                for (int i = 3; i <= desired; i++)
                 {
                     string slotId = $"Chip{i}";
 
@@ -97,23 +96,6 @@ namespace UtilitySlots.Features.ExtraSlots
                         horizontalOffset: horizontalOffset,
                         verticalOffset: verticalOffset
                     );
-                }
-
-                // Activation/visibilité suivant le nombre de slots désirés
-                for (int i = 3; i <= hard; i++)
-                {
-                    string slotId = $"Chip{i}";
-                    bool active = i <= desired;
-
-                    if (allSlots.TryGetValue(slotId, out var slot) && slot != null)
-                    {
-                        var go = slot.gameObject;
-                        slot.SetActive(active);
-                        if (go != null)
-                            go.SetActive(active);
-
-                        Log.Info($"[UtilitySlots][ExtraSlots][PlayerUI] Slot '{slotId}' active={active} (desired={desired}, hard={hard}).");
-                    }
                 }
             }
             catch (Exception e)

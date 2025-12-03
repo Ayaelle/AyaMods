@@ -23,7 +23,7 @@ namespace UtilitySlots.Config
         public static int OnFootQuickslots = 12;
 
         // EXTRASLOTS
-        public static int PlayerChipSlots = 4;
+        public static int ChipSlots = 4;
     }
 
     /// <summary>
@@ -108,12 +108,12 @@ namespace UtilitySlots.Config
         // EXTRASLOTS
         // -----------------------------
 
-        [Slider("Player chip slots (in-game)", 2, 6, DefaultValue = 4)]
-        public int PlayerChipSlots
-        {
-            get => RuntimeConfig.PlayerChipSlots;
-            set => RuntimeConfig.PlayerChipSlots = value;
-        }
+        // [Slider("Player chip slots (in-game)", 2, 6, DefaultValue = 4)]
+        //public int PlayerChipSlots
+        //{
+        //    get => RuntimeConfig.PlayerChipSlots;
+        //    set => RuntimeConfig.PlayerChipSlots = value;
+        //}
     }
 
     /// <summary>
@@ -140,8 +140,12 @@ namespace UtilitySlots.Config
         // PLAYER CHIPS
         // -----------------------------
 
-        // [Slider("Player chip slots", 2, 6, DefaultValue = 4)]
-        // public int ChipSlots { get; set; } = 4;
+        [Slider("Player chip slots", 2, 6, DefaultValue = 4)]
+        public int ChipSlots
+        {
+            get => RuntimeConfig.ChipSlots;
+            set => RuntimeConfig.ChipSlots = value;
+        }
 
         // -----------------------------
         // SEAMOTH

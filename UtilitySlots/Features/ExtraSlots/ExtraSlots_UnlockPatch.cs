@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using AyaCoreMod.Core;
+using UtilitySlots.Config;
 
 namespace UtilitySlots.Features.ExtraSlots
 {
@@ -10,15 +11,15 @@ namespace UtilitySlots.Features.ExtraSlots
         {
             try
             {
-                int hard = ExtraSlotsRuntime.GetHardChipSlots();
-                if (hard <= ExtraSlotsRuntime.VanillaChipSlots)
+                int desired = ExtraSlotsRuntime.GetDesiredChipSlots();
+                if (desired <= ExtraSlotsRuntime.VanillaChipSlots)
                     return;
 
                 var eq = __instance.equipment;
                 if (eq == null)
                     return;
 
-                for (int i = ExtraSlotsRuntime.VanillaChipSlots + 1; i <= hard; i++)
+                for (int i = ExtraSlotsRuntime.VanillaChipSlots + 1; i <= desired; i++)
                 {
                     string slot = $"Chip{i}";
                     Log.Info($"[UtilitySlots][ExtraSlots][UnlockPatch] Adding chip slot '{slot}' via Equipment.AddSlots().");
