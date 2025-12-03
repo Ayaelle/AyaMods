@@ -4,7 +4,7 @@ using System.Reflection;
 using AyaCoreMod.Core;
 using HarmonyLib;
 
-namespace UtilitySlots.Features.ExtraSlots
+namespace UtilitySlots.Features.ExtraSlotsCore
 {
     /// <summary>
     /// Patches de compatibilité bas niveau pour les chip slots :
@@ -32,14 +32,14 @@ namespace UtilitySlots.Features.ExtraSlots
             {
                 if (SlotMappingField == null)
                 {
-                    Log.Warn("[UtilitySlots][ExtraSlots][Compat] Equipment.slotMapping field not found; chip compat patch skipped.");
+                    Log.Warn("[UtilitySlots][ExtraSlotsCore][Compat] Equipment.slotMapping field not found; chip compat patch skipped.");
                     return;
                 }
 
                 var dict = SlotMappingField.GetValue(null) as Dictionary<string, EquipmentType>;
                 if (dict == null)
                 {
-                    Log.Warn("[UtilitySlots][ExtraSlots][Compat] Equipment.slotMapping is null; chip compat patch skipped.");
+                    Log.Warn("[UtilitySlots][ExtraSlotsCore][Compat] Equipment.slotMapping is null; chip compat patch skipped.");
                     return;
                 }
 
@@ -48,7 +48,7 @@ namespace UtilitySlots.Features.ExtraSlots
                     if (!dict.ContainsKey(slotId))
                     {
                         dict[slotId] = EquipmentType.Chip;
-                        Log.Info($"[UtilitySlots][ExtraSlots][Compat] slotMapping['{slotId}'] -> EquipmentType.Chip");
+                        Log.Info($"[UtilitySlots][ExtraSlotsCore][Compat] slotMapping['{slotId}'] -> EquipmentType.Chip");
                     }
                 }
 
@@ -59,7 +59,7 @@ namespace UtilitySlots.Features.ExtraSlots
             }
             catch (Exception e)
             {
-                Log.Error("[UtilitySlots][ExtraSlots][Compat] Exception in EnsureGlobalChipSlotMapping: " + e);
+                Log.Error("[UtilitySlots][ExtraSlotsCore][Compat] Exception in EnsureGlobalChipSlotMapping: " + e);
             }
         }
 
@@ -87,13 +87,13 @@ namespace UtilitySlots.Features.ExtraSlots
                         if (!results.Contains(slotId))
                         {
                             results.Add(slotId);
-                            Log.Info($"[UtilitySlots][ExtraSlots][Compat] GetSlots: added '{slotId}' for itemType={itemType}.");
+                            Log.Info($"[UtilitySlots][ExtraSlotsCore][Compat] GetSlots: added '{slotId}' for itemType={itemType}.");
                         }
                     }
                 }
                 catch (Exception e)
                 {
-                    Log.Error("[UtilitySlots][ExtraSlots][Compat] Exception in Equipment.GetSlots postfix: " + e);
+                    Log.Error("[UtilitySlots][ExtraSlotsCore][Compat] Exception in Equipment.GetSlots postfix: " + e);
                 }
             }
         }
@@ -128,12 +128,12 @@ namespace UtilitySlots.Features.ExtraSlots
                     if (!dict.ContainsKey(slot))
                     {
                         dict[slot] = null;
-                        Log.Info($"[UtilitySlots][ExtraSlots][Compat] AddItem Prefix: adding missing key '{slot}' to equipment dict.");
+                        Log.Info($"[UtilitySlots][ExtraSlotsCore][Compat] AddItem Prefix: adding missing key '{slot}' to equipment dict.");
                     }
                 }
                 catch (Exception e)
                 {
-                    Log.Error("[UtilitySlots][ExtraSlots][Compat] Exception in Equipment.AddItem prefix: " + e);
+                    Log.Error("[UtilitySlots][ExtraSlotsCore][Compat] Exception in Equipment.AddItem prefix: " + e);
                 }
             }
         }

@@ -1,7 +1,8 @@
 ﻿using System;
 using AyaCoreMod.Core;
+using UtilitySlots.Features.ExtraSlotsCore;
 
-namespace UtilitySlots.Features.ExtraSlots
+namespace UtilitySlots.Features.ExtraSlotsPlayer
 {
     /// <summary>
     /// Runtime helper pour étendre réellement l’Equipment du joueur
@@ -13,7 +14,7 @@ namespace UtilitySlots.Features.ExtraSlots
         {
             if (equipment == null)
             {
-                Log.Warn("[UtilitySlots][ExtraSlots][Player] ExpandChipSlots called with null equipment.");
+                Log.Warn("[UtilitySlots][ExtraSlotsCore][Player] ExpandChipSlots called with null equipment.");
                 return;
             }
 
@@ -26,16 +27,16 @@ namespace UtilitySlots.Features.ExtraSlots
                 string slotId = $"Chip{i}";
                 try
                 {
-                    Log.Info($"[UtilitySlots][ExtraSlots][Player] Ensuring Equipment slot '{slotId}' exists via AddSlot().");
+                    Log.Info($"[UtilitySlots][ExtraSlotsCore][Player] Ensuring Equipment slot '{slotId}' exists via AddSlot().");
                     equipment.AddSlot(slotId);
                 }
                 catch (Exception e)
                 {
-                    Log.Error("[UtilitySlots][ExtraSlots][Player] Exception while AddSlot('" + slotId + "'): " + e);
+                    Log.Error("[UtilitySlots][ExtraSlotsCore][Player] Exception while AddSlot('" + slotId + "'): " + e);
                 }
             }
 
-            Log.Info($"[UtilitySlots][ExtraSlots][Player] Chip slots expanded up to: {desired}.");
+            Log.Info($"[UtilitySlots][ExtraSlotsCore][Player] Chip slots expanded up to: {desired}.");
         }
     }
 }

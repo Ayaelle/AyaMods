@@ -1,8 +1,9 @@
 ﻿using System;
 using AyaCoreMod.Core;
 using HarmonyLib;
+using UtilitySlots.Features.ExtraSlotsCore;
 
-namespace UtilitySlots.Features.ExtraSlots
+namespace UtilitySlots.Features.ExtraSlotsPlayer
 {
     /// <summary>
     /// Patches côté joueur (Inventory.main)
@@ -26,16 +27,16 @@ namespace UtilitySlots.Features.ExtraSlots
 
                 if (__instance.equipment == null)
                 {
-                    Log.Warn("[UtilitySlots][ExtraSlots][Player] Inventory.main.equipment is null in Awake.");
+                    Log.Warn("[UtilitySlots][ExtraSlotsCore][Player] Inventory.main.equipment is null in Awake.");
                     return;
                 }
 
-                Log.Info("[UtilitySlots][ExtraSlots][Player] Expanding player chip slots…");
+                Log.Info("[UtilitySlots][ExtraSlotsCore][Player] Expanding player chip slots…");
                 ExtraSlotsPlayerRuntime.ExpandChipSlots(__instance.equipment);
             }
             catch (Exception e)
             {
-                Log.Error("[UtilitySlots][ExtraSlots][Player] Exception in Inventory.Awake postfix: " + e);
+                Log.Error("[UtilitySlots][ExtraSlotsCore][Player] Exception in Inventory.Awake postfix: " + e);
             }
         }
     }

@@ -4,8 +4,9 @@ using System.Reflection;
 using AyaCoreMod.Core;
 using HarmonyLib;
 using UnityEngine;
+using UtilitySlots.Features.ExtraSlotsCore;
 
-namespace UtilitySlots.Features.ExtraSlots
+namespace UtilitySlots.Features.ExtraSlotsPlayer
 {
     /// <summary>
     /// Patches UI du PDA (uGUI_Equipment) pour afficher Chip3..Chip6.
@@ -36,7 +37,7 @@ namespace UtilitySlots.Features.ExtraSlots
                 var allSlots = allSlotsObj as Dictionary<string, uGUI_EquipmentSlot>;
                 if (allSlots == null)
                 {
-                    Log.Warn("[UtilitySlots][ExtraSlots][PlayerUI] allSlots dictionary is null.");
+                    Log.Warn("[UtilitySlots][ExtraSlotsCore][PlayerUI] allSlots dictionary is null.");
                     return;
                 }
 
@@ -44,7 +45,7 @@ namespace UtilitySlots.Features.ExtraSlots
                     !allSlots.TryGetValue("Chip2", out var chip2) ||
                     chip1 == null || chip2 == null)
                 {
-                    Log.Warn("[UtilitySlots][ExtraSlots][PlayerUI] Could not find Chip1/Chip2 UI slots.");
+                    Log.Warn("[UtilitySlots][ExtraSlotsCore][PlayerUI] Could not find Chip1/Chip2 UI slots.");
                     return;
                 }
 
@@ -52,7 +53,7 @@ namespace UtilitySlots.Features.ExtraSlots
                 var chip2Rect = chip2.GetComponent<RectTransform>();
                 if (chip1Rect == null || chip2Rect == null)
                 {
-                    Log.Warn("[UtilitySlots][ExtraSlots][PlayerUI] Chip1/Chip2 RectTransform missing.");
+                    Log.Warn("[UtilitySlots][ExtraSlotsCore][PlayerUI] Chip1/Chip2 RectTransform missing.");
                     return;
                 }
 
@@ -64,7 +65,7 @@ namespace UtilitySlots.Features.ExtraSlots
                 Vector2 p2 = chip2Rect.anchoredPosition;
 
                 Log.Info(
-                    $"[UtilitySlots][ExtraSlots][PlayerUI] " +
+                    $"[UtilitySlots][ExtraSlotsCore][PlayerUI] " +
                     $"slotHeight={slotHeight:F1}, rowOffset={rowOffset:F1}, " +
                     $"colInset={colInset:F1}, chip1Pos={p1}, chip2Pos={p2}"
                 );
@@ -74,8 +75,8 @@ namespace UtilitySlots.Features.ExtraSlots
                 {
                     string slotId = $"Chip{i}";
 
-                    bool isLeft = (i % 2) == 1;     // 3,5 = gauche ; 4,6 = droite
-                    bool isUpperRow = (i <= 4);    // 3,4 = haut ; 5,6 = bas    
+                    bool isLeft = i % 2 == 1;     // 3,5 = gauche ; 4,6 = droite
+                    bool isUpperRow = i <= 4;    // 3,4 = haut ; 5,6 = bas    
                     int rowIndex = isUpperRow ? 1 : 2; // 3/4 sur la première rangée, 5/6 sur la seconde
 
                     float verticalOffset = rowOffset * rowIndex;
@@ -100,7 +101,7 @@ namespace UtilitySlots.Features.ExtraSlots
             }
             catch (Exception e)
             {
-                Log.Error("[UtilitySlots][ExtraSlots][PlayerUI] Exception in uGUI_Equipment.Init postfix: " + e);
+                Log.Error("[UtilitySlots][ExtraSlotsCore][PlayerUI] Exception in uGUI_Equipment.Init postfix: " + e);
             }
         }
 
@@ -152,7 +153,7 @@ namespace UtilitySlots.Features.ExtraSlots
 
                     allSlots[slotId] = slot;
 
-                    Log.Info($"[UtilitySlots][ExtraSlots][PlayerUI] Created uGUI slot for '{slotId}'.");
+                    Log.Info($"[UtilitySlots][ExtraSlotsCore][PlayerUI] Created uGUI slot for '{slotId}'.");
                 }
             }
 
@@ -167,7 +168,7 @@ namespace UtilitySlots.Features.ExtraSlots
             slot.SetActive(true);
             slot.gameObject.SetActive(true);
 
-            Log.Info($"[UtilitySlots][ExtraSlots][PlayerUI] Positioned '{slotId}' at {slotRect.anchoredPosition}.");
+            Log.Info($"[UtilitySlots][ExtraSlotsCore][PlayerUI] Positioned '{slotId}' at {slotRect.anchoredPosition}.");
         }
     }
 }

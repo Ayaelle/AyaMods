@@ -1,9 +1,9 @@
 ﻿using UtilitySlots.Config;
 
-namespace UtilitySlots.Features.ExtraSlots
+namespace UtilitySlots.Features.ExtraSlotsCore
 {
     /// <summary>
-    /// Runtime helpers pour ExtraSlots (principalement les slots de puces joueur).
+    /// Runtime helpers pour ExtraSlotsCore (principalement les slots de puces joueur).
     /// Source de vérité pour le nombre de chip slots.
     /// </summary>
     public static class ExtraSlotsRuntime
@@ -17,7 +17,7 @@ namespace UtilitySlots.Features.ExtraSlots
         /// <summary> Borne max physique que l’on gère. </summary>
         public const int MaxChipSlots = 6;
 
-        /// <summary> True si ExtraSlots est activé dans les options globales. </summary>
+        /// <summary> True si ExtraSlotsCore est activé dans les options globales. </summary>
         public static bool IsEnabled()
         {
             var gopt = GlobalOptions.Instance;

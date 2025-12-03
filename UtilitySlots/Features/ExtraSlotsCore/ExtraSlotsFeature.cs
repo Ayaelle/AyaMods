@@ -2,11 +2,12 @@
 using AyaCoreMod.Features;
 using UnityEngine;
 using UtilitySlots.Config;
+using UtilitySlots.Features.ExtraSlotsPlayer;
 
-namespace UtilitySlots.Features.ExtraSlots
+namespace UtilitySlots.Features.ExtraSlotsCore
 {
     /// <summary>
-    /// Feature principale ExtraSlots.
+    /// Feature principale ExtraSlotsCore.
     /// Actuellement : gère UNIQUEMENT les slots de puce du joueur (Chip1..Chip4).
     /// </summary>
     public class ExtraSlotsFeature : IFeature
@@ -18,7 +19,7 @@ namespace UtilitySlots.Features.ExtraSlots
             var gopt = GlobalOptions.Instance;
             if (gopt == null || !gopt.EnableExtraSlots)
             {
-                Log.Info("[UtilitySlots][ExtraSlots] Disabled by GlobalOptions.");
+                Log.Info("[UtilitySlots][ExtraSlotsCore] Disabled by GlobalOptions.");
                 return;
             }
 
@@ -32,7 +33,7 @@ namespace UtilitySlots.Features.ExtraSlots
             Object.DontDestroyOnLoad(_runner);
             _runner.AddComponent<Runner>();
 
-            Log.Info("[UtilitySlots][ExtraSlots] Feature enabled.");
+            Log.Info("[UtilitySlots][ExtraSlotsCore] Feature enabled.");
         }
 
         public void Disable()
@@ -41,7 +42,7 @@ namespace UtilitySlots.Features.ExtraSlots
             {
                 Object.Destroy(_runner);
                 _runner = null;
-                Log.Info("[UtilitySlots][ExtraSlots] Feature disabled.");
+                Log.Info("[UtilitySlots][ExtraSlotsCore] Feature disabled.");
             }
         }
 
@@ -81,7 +82,7 @@ namespace UtilitySlots.Features.ExtraSlots
                     // 2) on applique réellement les slots supplémentaires
                     ExtraSlotsPlayerRuntime.ExpandChipSlots(equipment);
 
-                    Log.Info($"[UtilitySlots][ExtraSlots][Player] Applied chip slots: {desired}.");
+                    Log.Info($"[UtilitySlots][ExtraSlotsCore][Player] Applied chip slots: {desired}.");
                 }
             }
         }

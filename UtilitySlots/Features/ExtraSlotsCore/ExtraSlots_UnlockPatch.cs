@@ -2,7 +2,7 @@
 using AyaCoreMod.Core;
 using UtilitySlots.Config;
 
-namespace UtilitySlots.Features.ExtraSlots
+namespace UtilitySlots.Features.ExtraSlotsCore
 {
     [HarmonyPatch(typeof(Inventory), "UnlockDefaultEquipmentSlots")]
     internal static class ExtraSlotsUnlockPatch
@@ -22,13 +22,13 @@ namespace UtilitySlots.Features.ExtraSlots
                 for (int i = ExtraSlotsRuntime.VanillaChipSlots + 1; i <= desired; i++)
                 {
                     string slot = $"Chip{i}";
-                    Log.Info($"[UtilitySlots][ExtraSlots][UnlockPatch] Adding chip slot '{slot}' via Equipment.AddSlots().");
+                    Log.Info($"[UtilitySlots][ExtraSlotsCore][UnlockPatch] Adding chip slot '{slot}' via Equipment.AddSlots().");
                     eq.AddSlots(new[] { slot });
                 }
             }
             catch (System.Exception e)
             {
-                Log.Error("[UtilitySlots][ExtraSlots][UnlockPatch] Exception: " + e);
+                Log.Error("[UtilitySlots][ExtraSlotsCore][UnlockPatch] Exception: " + e);
             }
         }
     }
