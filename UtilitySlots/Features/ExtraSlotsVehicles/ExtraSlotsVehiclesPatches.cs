@@ -16,6 +16,8 @@ namespace UtilitySlots.Features.ExtraSlotsVehicles
     [HarmonyPatch]
     internal static class ExtraSlotsVehiclesPatches
     {
+        private static bool _loggedSeamothOnce = false;
+        private static bool _loggedExosuitOnce = false;
         // -----------------------------
         // 1) SeaMoth.slotIDs
         // -----------------------------
@@ -40,7 +42,11 @@ namespace UtilitySlots.Features.ExtraSlotsVehicles
 
                     __result = ExtraSlotsVehiclesRuntime.BuildSeamothSlotIDs(desired);
 
-                    Log.Info($"[UtilitySlots][ExtraSlotsVehicles][Seamoth] slotIDs étendu à {__result.Length} modules.");
+                    if (!_loggedSeamothOnce)
+                    {
+                        Log.Info($"[UtilitySlots][ExtraSlotsVehicles][Seamoth] slotIDs étendu à {__result.Length} modules.");
+                        _loggedSeamothOnce = true;
+                    }
                 }
                 catch (Exception e)
                 {
@@ -73,9 +79,11 @@ namespace UtilitySlots.Features.ExtraSlotsVehicles
 
                     __result = ExtraSlotsVehiclesRuntime.BuildExosuitSlotIDs(desiredModules);
 
-                    Log.Info(
-                        $"[UtilitySlots][ExtraSlotsVehicles][Exosuit] slotIDs étendu à {__result.Length} entrées (2 bras + {desiredModules} modules)."
-                    );
+                    if (!_loggedExosuitOnce)
+                    {
+                        Log.Info($"[UtilitySlots][ExtraSlotsVehicles][Exosuit] slotIDs étendu à {__result.Length} entrées (2 bras + {desiredModules} modules).");
+                        _loggedExosuitOnce = true;
+                    }
                 }
                 catch (Exception e)
                 {

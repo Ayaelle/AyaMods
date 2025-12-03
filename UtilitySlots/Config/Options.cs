@@ -25,9 +25,9 @@ namespace UtilitySlots.Config
         // EXTRASLOTS
         public static bool EnableExtraSlots = true;
         public static int ChipSlots = 4;
-        public static int SeamothModuleSlots = 12;
+        public static int SeamothModuleSlots = 10;
         public static bool SeamothArmSlots = true;
-        public static int ExosuitModuleSlots = 12;
+        public static int ExosuitModuleSlots = 10;
         public static int CyclopsSlots = 14;
     }
 
@@ -149,8 +149,8 @@ namespace UtilitySlots.Config
         // SEAMOTH
         // -----------------------------
 
-        [Slider("Seamoth module slots", 4, 12, DefaultValue = 12)]
-        public int SeamothSlots
+        [Slider("Seamoth module slots", 4, 10, DefaultValue = 10)]
+        public int SeamothModuleSlots
         {
             get => RuntimeConfig.SeamothModuleSlots;
             set => RuntimeConfig.SeamothModuleSlots = value;
@@ -167,8 +167,8 @@ namespace UtilitySlots.Config
         // PRAWN
         // -----------------------------
 
-        [Slider("Prawn module slots", 4, 12, DefaultValue = 12)]
-        public int ExosuitSlots
+        [Slider("Prawn module slots", 4, 10, DefaultValue = 10)]
+        public int ExosuitModuleSlots
         {
             get => RuntimeConfig.ExosuitModuleSlots;
             set => RuntimeConfig.ExosuitModuleSlots = value;
