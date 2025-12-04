@@ -3,18 +3,20 @@
 namespace UtilitySlots.Features.ExtraSlotsVehciles
 {
     /// <summary>
-    /// Helpers runtime pour les slots de modules véhicules (Seamoth / Exosuit).
+    /// Helpers runtime pour les slots de modules véhicules (Seamoth / Exosuit / Cyclops).
     /// Ne gère que la partie "nombre de slots" côté logique, pas l'UI.
     /// </summary>
     public static class ExtraSlotsVehiclesRuntime
     {
-        // Seamoth : vanilla = 4 slots de modules.
+        // Vanilla
         public const int VanillaSeamothModuleSlots = 4;
-        public const int MaxSeamothModuleSlots = 6;
-
-        // Exosuit : vanilla = 4 slots de modules (2 bras + 4 modules dans _slotIDs). :contentReference[oaicite:0]{index=0}
         public const int VanillaExosuitModuleSlots = 4;
-        public const int MaxExosuitModuleSlots = 6;
+        public const int VanillaCyclopsModuleSlots = 6;
+
+        // Cibles max
+        public const int MaxSeamothModuleSlots = 12;
+        public const int MaxExosuitModuleSlots = 12;
+        public const int MaxCyclopsModuleSlots = 14;
 
         private static GlobalOptions GOpt => GlobalOptions.Instance;
 
@@ -67,6 +69,27 @@ namespace UtilitySlots.Features.ExtraSlotsVehciles
         }
 
         /// <summary>
+        /// Nombre de slots de modules souhaité pour le Cyclops.
+        /// Clampé entre vanilla et max.
+        /// </summary>
+        public static int GetDesiredCyclopsModuleSlots()
+        {
+            if (!ExtraSlotsEnabled())
+                return VanillaCyclopsModuleSlots;
+
+            var g = GOpt;
+            int requested = g != null ? g.CyclopsModuleSlots : VanillaCyclopsModuleSlots;
+
+            if (requested < VanillaCyclopsModuleSlots)
+                requested = VanillaCyclopsModuleSlots;
+
+            if (requested > MaxCyclopsModuleSlots)
+                requested = MaxCyclopsModuleSlots;
+
+            return requested;
+        }
+
+        /// <summary>
         /// Construit la liste complète des slotIDs pour le Seamoth :
         /// "SeamothModule1".."SeamothModuleN".
         /// </summary>
@@ -85,7 +108,7 @@ namespace UtilitySlots.Features.ExtraSlotsVehciles
         /// <summary>
         /// Construit la liste complète des slotIDs pour l’Exosuit :
         /// bras + "ExosuitModule1".."ExosuitModuleN".
-        /// L’ordre doit rester : bras gauche, bras droit, puis modules. :contentReference[oaicite:1]{index=1}
+        /// L’ordre reste : bras gauche, bras droit, puis modules.
         /// </summary>
         public static string[] BuildExosuitSlotIDs(int desiredModules)
         {

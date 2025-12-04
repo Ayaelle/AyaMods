@@ -19,19 +19,12 @@ namespace UtilitySlots.Features.QuickSlotsCore
         public const int HardMaxSlots = 12;
 
         /// <summary>
-        /// Retourne le contexte courant (à pied / en véhicule) d'après le Player.
-        /// Cette info n'est plus utilisée pour le calcul du nombre de slots,
-        /// mais on la conserve au cas où d'autres patches s'en servent.
+        /// Retourne le contexte courant.
+        /// On renvoie toujours OnFoot pour simplifier la logique :
+        /// les véhicules restent 100% vanilla côté QuickSlots.
         /// </summary>
         public static QuickSlotsContext GetCurrentContext()
         {
-            Player player = Player.main;
-            if (player != null && player.GetMode() == Player.Mode.Piloting)
-            {
-                // Pilotage Seamoth / Exosuit / etc.
-                return QuickSlotsContext.Vehicle;
-            }
-
             return QuickSlotsContext.OnFoot;
         }
 

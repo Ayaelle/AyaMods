@@ -6,7 +6,9 @@ namespace UtilitySlots.Features.QuickSlotsCore
 {
     /// <summary>
     /// Patchs de sécurité pour éviter les IndexOutOfRange dans QuickSlots.
-    /// On vérifie les index avant d'appeler les méthodes internes.
+    /// On vérifie les index avant d'appeler les méthodes internes, mais
+    /// on évite le spam de logs et on laisse autant que possible la logique
+    /// vanilla s'exécuter.
     /// </summary>
     [HarmonyPatch(typeof(QuickSlots))]
     public static class QuickSlotsSafetyPatches
@@ -52,7 +54,8 @@ namespace UtilitySlots.Features.QuickSlotsCore
         /// <summary>
         /// Sécurité avant SelectInternal(int):
         /// on s'assure que slotID est dans [0; safeSlotCount[
-        /// et dans [0; binding.Length[. Sinon on reset et on skippe.
+        /// et dans [0; binding.Length[. Sinon on reset et on SKIPPE
+        /// (pour éviter un IndexOutOfRange violent).
         /// </summary>
         [HarmonyPatch("SelectInternal")]
         [HarmonyPrefix]
@@ -62,16 +65,14 @@ namespace UtilitySlots.Features.QuickSlotsCore
 
             if (binding == null)
             {
-                Log.Warn("[UtilitySlots][Quickslots][Safety] binding[] is null in SelectInternal_Prefix, skipping safety.");
-                return true; // on ne sait rien faire, on laisse passer (au pire on verra l'exception vanilla)
+                // On ne sait rien faire, on laisse la méthode originale décider.
+                return true;
             }
 
             int length = binding.Length;
             int safeCount = GetSafeSlotCount(__instance, binding);
 
-            Log.Info($"[UtilitySlots][Quickslots][Safety] EnsureValidIndex: slotID={slotID}, slotCount={safeCount}, length={length}");
-
-            // Au cas où le champ slotCount interne est incohérent, on le corrige aussi.
+            // Corriger un slotCount interne incohérent si besoin.
             if (SlotCountField != null)
             {
                 object raw = SlotCountField.GetValue(__instance);
@@ -84,9 +85,11 @@ namespace UtilitySlots.Features.QuickSlotsCore
 
             if (safeCount <= 0)
             {
-                Log.Warn("[UtilitySlots][Quickslots][Safety] safeCount <= 0, forcing deselect and skipping SelectInternal.");
+                // Aucun slot safe : on force la désélection et on ne laisse pas SelectInternal
+                // accéder à un index invalide.
                 ActiveSlotField?.SetValue(__instance, -1);
                 DesiredSlotField?.SetValue(__instance, -1);
+                Log.Warn("[UtilitySlots][Quickslots][Safety] safeCount <= 0, skipping SelectInternal.");
                 return false;
             }
 
@@ -108,13 +111,14 @@ namespace UtilitySlots.Features.QuickSlotsCore
                 return false;
             }
 
-            return true; // OK, laisser faire la méthode originale
+            // Tout est OK, on laisse la méthode originale travailler.
+            return true;
         }
 
         /// <summary>
         /// Sécurité avant DeselectInternal():
         /// on vérifie que activeSlot est dans [0; safeSlotCount[,
-        /// sinon on le remet à -1 et on skippe.
+        /// sinon on le remet à -1. On NE BLOQUE PAS la méthode originale.
         /// </summary>
         [HarmonyPatch("DeselectInternal")]
         [HarmonyPrefix]
@@ -124,7 +128,7 @@ namespace UtilitySlots.Features.QuickSlotsCore
 
             if (binding == null)
             {
-                Log.Warn("[UtilitySlots][Quickslots][Safety] binding[] is null in DeselectInternal_Prefix, skipping safety.");
+                // Pas d'info -> on laisse la méthode vanilla.
                 return true;
             }
 
@@ -139,30 +143,20 @@ namespace UtilitySlots.Features.QuickSlotsCore
                     activeSlot = i;
             }
 
-            Log.Info($"[UtilitySlots][Quickslots][Safety] DeselectInternal: activeSlot={activeSlot}, safeCount={safeCount}, length={length}");
-
-            if (safeCount <= 0)
-            {
-                ActiveSlotField?.SetValue(__instance, -1);
-                DesiredSlotField?.SetValue(__instance, -1);
-                return false;
-            }
-
+            // Si rien n'est sélectionné, on ne touche à rien et on laisse la méthode vanilla.
             if (activeSlot < 0)
-            {
-                // Rien de sélectionné, rien à faire.
-                return false;
-            }
+                return true;
 
+            // Si l'index est incohérent, on le reset pour éviter un accès hors borne,
+            // puis on laisse DeselectInternal faire son travail logique.
             if (activeSlot >= safeCount || activeSlot >= length)
             {
-                Log.Warn($"[UtilitySlots][Quickslots][Safety] activeSlot={activeSlot} out of range (safeCount={safeCount}, len={length}), resetting.");
+                Log.Warn($"[UtilitySlots][Quickslots][Safety] activeSlot={activeSlot} out of range (safeCount={safeCount}, len={length}), resetting to -1.");
                 ActiveSlotField?.SetValue(__instance, -1);
                 DesiredSlotField?.SetValue(__instance, -1);
-                return false;
             }
 
-            return true; // OK, laisser faire la méthode originale
+            return true; // Toujours laisser la méthode originale s'exécuter
         }
     }
 }

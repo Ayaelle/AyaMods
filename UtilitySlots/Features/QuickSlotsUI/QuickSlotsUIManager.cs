@@ -38,7 +38,8 @@ namespace UtilitySlots.Features.QuickSlotsUI
             uninitMethod.Invoke(instance, null);
             targetField.SetValue(instance, null);
 
-            Log.Info("[UtilitySlots][Quickslots][UI] Forcing quickslot UI reinit.");
+            // Log retiré pour éviter le spam :
+            // Log.Info("[UtilitySlots][Quickslots][UI] Forcing quickslot UI reinit.");
         }
 
         [HarmonyPatch(typeof(uGUI_QuickSlots), "Update")]

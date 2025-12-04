@@ -10,21 +10,21 @@ namespace UtilitySlots.Features.ExtraSlotsCore
     /// <summary>
     /// Patches de compatibilité bas niveau pour ExtraSlots :
     /// - Étend Equipment.slotMapping pour Chip3..Chip6 -> EquipmentType.Chip
-    /// - Étend Equipment.slotMapping pour SeamothModule5..N -> EquipmentType.SeamothModule
-    ///   et ExosuitModule5..N -> EquipmentType.ExosuitModule
+    /// - Étend Equipment.slotMapping pour SeamothModule5..12 -> EquipmentType.SeamothModule
+    ///   et ExosuitModule5..12 -> EquipmentType.ExosuitModule
+    ///   et Module7..14 (Cyclops) -> EquipmentType.CyclopsModule
     /// - Étend Equipment.GetSlots pour que les items de type Chip puissent utiliser Chip3..ChipN
     /// - Sécurise Equipment.AddItem pour que le dictionnaire interne ait bien les clés Chip3/Chip4/Chip5/Chip6.
-    /// 
-    /// Remarque :
-    /// Pour les véhicules, le mapping est global (static) et couvre directement toute la plage
-    /// jusqu’aux MaxSeamothModuleSlots / MaxExosuitModuleSlots, ce qui évite les erreurs
-    /// "Slot type is not defined in Equipment.slotMapping dictionary." lors des AddSlot().
     /// </summary>
     [HarmonyPatch]
     internal static class ExtraSlotsCompatibilityPatches
     {
         private static readonly FieldInfo SlotMappingField =
             AccessTools.Field(typeof(Equipment), "slotMapping");
+
+        // -----------------------
+        // BASES DÉCLARATIVES
+        // -----------------------
 
         internal static readonly string[] ExtraChipSlots =
         {
@@ -35,12 +35,56 @@ namespace UtilitySlots.Features.ExtraSlotsCore
         };
 
         /// <summary>
+        /// Slots de modules "extra" pour le Seamoth (au-delà des 4 vanilla).
+        /// </summary>
+        internal static readonly string[] ExtraSeamothModuleSlots =
+        {
+            "SeamothModule5",
+            "SeamothModule6",
+            "SeamothModule7",
+            "SeamothModule8",
+            "SeamothModule9",
+            "SeamothModule10",
+            "SeamothModule11",
+            "SeamothModule12"
+        };
+
+        /// <summary>
+        /// Slots de modules "extra" pour l’Exosuit (au-delà des 4 vanilla).
+        /// </summary>
+        internal static readonly string[] ExtraExosuitModuleSlots =
+        {
+            "ExosuitModule5",
+            "ExosuitModule6",
+            "ExosuitModule7",
+            "ExosuitModule8",
+            "ExosuitModule9",
+            "ExosuitModule10",
+            "ExosuitModule11",
+            "ExosuitModule12"
+        };
+
+        /// <summary>
+        /// Slots de modules "extra" pour le Cyclops (au-delà des 6 vanilla).
+        /// </summary>
+        internal static readonly string[] ExtraCyclopsModuleSlots =
+        {
+            "Module7",
+            "Module8",
+            "Module9",
+            "Module10",
+            "Module11",
+            "Module12",
+            "Module13",
+            "Module14"
+        };
+
+        /// <summary>
         /// Initialise / complète le dictionnaire global Equipment.slotMapping pour :
         /// - Chip1..Chip6
-        /// - SeamothModule* supplémentaires
-        /// - ExosuitModule* supplémentaires
-        /// 
-        /// Appelé une fois au démarrage de la feature ExtraSlots.
+        /// - SeamothModule5..12
+        /// - ExosuitModule5..12
+        /// - Module7..14 (Cyclops)
         /// </summary>
         internal static void EnsureGlobalChipSlotMapping()
         {
@@ -52,8 +96,6 @@ namespace UtilitySlots.Features.ExtraSlotsCore
                     return;
                 }
 
-                // Dans Subnautica, slotMapping est un champ static sur Equipment.
-                // On utilise GetValue(null) (comme pour les chips auparavant).
                 var dict = SlotMappingField.GetValue(null) as Dictionary<string, EquipmentType>;
                 if (dict == null)
                 {
@@ -79,23 +121,20 @@ namespace UtilitySlots.Features.ExtraSlotsCore
 
                 // --- Véhicules : Seamoth modules ---
 
-                // On map directement tous les slots possibles jusqu’au max défini dans ExtraSlotsVehiclesRuntime.
-                // Cela évite des erreurs AddSlot() pour les slots au-delà de la config actuelle (et ne gêne pas le vanilla).
-                int seamothMax = ExtraSlotsVehiclesRuntime.MaxSeamothModuleSlots;
-                for (int i = ExtraSlotsVehiclesRuntime.VanillaSeamothModuleSlots + 1; i <= seamothMax; i++)
-                {
-                    string slotId = $"SeamothModule{i}";
+                // On se limite aux slots déclarés dans ExtraSeamothModuleSlots, qui
+                // correspondent à Vanilla=4 -> Max=12.
+                foreach (var slotId in ExtraSeamothModuleSlots)
                     EnsureSlot(slotId, EquipmentType.SeamothModule);
-                }
 
                 // --- Véhicules : Exosuit modules ---
 
-                int exoMax = ExtraSlotsVehiclesRuntime.MaxExosuitModuleSlots;
-                for (int i = ExtraSlotsVehiclesRuntime.VanillaExosuitModuleSlots + 1; i <= exoMax; i++)
-                {
-                    string slotId = $"ExosuitModule{i}";
+                foreach (var slotId in ExtraExosuitModuleSlots)
                     EnsureSlot(slotId, EquipmentType.ExosuitModule);
-                }
+
+                // --- Véhicules : Cyclops modules ---
+
+                foreach (var slotId in ExtraCyclopsModuleSlots)
+                    EnsureSlot(slotId, EquipmentType.CyclopsModule);
             }
             catch (Exception e)
             {

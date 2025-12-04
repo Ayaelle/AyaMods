@@ -24,11 +24,11 @@ namespace UtilitySlots.Config
 
         // EXTRASLOTS
         public static bool EnableExtraSlots = true;
-        public static int ChipSlots = 4;
-        public static int SeamothModuleSlots = 10;
+        public static int ChipSlots = 6;
+        public static int SeamothModuleSlots = 12;
         public static bool SeamothArmSlots = true;
-        public static int ExosuitModuleSlots = 10;
-        public static int CyclopsSlots = 14;
+        public static int ExosuitModuleSlots = 12;
+        public static int CyclopsModuleSlots = 14;
     }
 
     /// <summary>
@@ -102,7 +102,7 @@ namespace UtilitySlots.Config
             set => RuntimeConfig.ShowQuickSlotLabels = value;
         }
 
-        [Slider("Quickslots", 4, 12, DefaultValue = 12)]
+        [Slider("Quickslots", 4, 12, DefaultValue = 5)]
         public int OnFootQuickslots
         {
             get => RuntimeConfig.OnFootQuickslots;
@@ -138,7 +138,7 @@ namespace UtilitySlots.Config
         // PLAYER CHIPS
         // -----------------------------
 
-        [Slider("Player chip slots", 2, 6, DefaultValue = 4)]
+        [Slider("Player chip slots", 2, 6, DefaultValue = 2)]
         public int ChipSlots
         {
             get => RuntimeConfig.ChipSlots;
@@ -149,7 +149,7 @@ namespace UtilitySlots.Config
         // SEAMOTH
         // -----------------------------
 
-        [Slider("Seamoth module slots", 4, 10, DefaultValue = 10)]
+        [Slider("Seamoth module slots", 4, 12, DefaultValue = 4)]
         public int SeamothModuleSlots
         {
             get => RuntimeConfig.SeamothModuleSlots;
@@ -167,7 +167,7 @@ namespace UtilitySlots.Config
         // PRAWN
         // -----------------------------
 
-        [Slider("Prawn module slots", 4, 10, DefaultValue = 10)]
+        [Slider("Prawn module slots", 4, 12, DefaultValue = 4)]
         public int ExosuitModuleSlots
         {
             get => RuntimeConfig.ExosuitModuleSlots;
@@ -178,11 +178,11 @@ namespace UtilitySlots.Config
         // CYCLOPS
         // -----------------------------
 
-        [Slider("Cyclops module slots", 6, 14, DefaultValue = 14)]
-        public int CyclopsSlots
+        [Slider("Cyclops module slots", 6, 14, DefaultValue = 6)]
+        public int CyclopsModuleSlots
         {
-            get => RuntimeConfig.CyclopsSlots;
-            set => RuntimeConfig.CyclopsSlots = value;
+            get => RuntimeConfig.CyclopsModuleSlots;
+            set => RuntimeConfig.CyclopsModuleSlots = value;
         }
 
         // -----------------------------
