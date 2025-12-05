@@ -4,7 +4,7 @@ namespace UtilitySlots.Features.ExtraSlotsVehciles
 {
     /// <summary>
     /// Helpers runtime pour les slots de modules véhicules (Seamoth / Exosuit / Cyclops).
-    /// Ne gère que la partie "nombre de slots" côté logique, pas l'UI.
+    /// Gère le "nombre de slots" côté logique, pas l'UI.
     /// </summary>
     public static class ExtraSlotsVehiclesRuntime
     {
@@ -108,7 +108,7 @@ namespace UtilitySlots.Features.ExtraSlotsVehciles
         /// <summary>
         /// Construit la liste complète des slotIDs pour l’Exosuit :
         /// bras + "ExosuitModule1".."ExosuitModuleN".
-        /// L’ordre reste : bras gauche, bras droit, puis modules.
+        /// L’ordre : bras gauche, bras droit, puis modules.
         /// </summary>
         public static string[] BuildExosuitSlotIDs(int desiredModules)
         {

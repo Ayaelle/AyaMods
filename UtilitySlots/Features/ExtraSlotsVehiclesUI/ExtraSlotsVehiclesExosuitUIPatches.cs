@@ -1,8 +1,8 @@
-﻿using AyaCoreMod.Core;
-using HarmonyLib;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using AyaCoreMod.Core;
+using HarmonyLib;
 using UnityEngine;
 using UtilitySlots.Features.ExtraSlotsCore;
 using UtilitySlots.Features.ExtraSlotsVehciles;
@@ -10,21 +10,16 @@ using UtilitySlots.Features.ExtraSlotsVehciles;
 namespace UtilitySlots.Features.ExtraSlotsVehiclesUI
 {
     /// <summary>
-    /// UI PDA pour les modules d'Exosuit.
+    /// UI PDA pour les modules d’Exosuit.
     /// - N'agit que si l'Equipment appartient à un Exosuit.
-    /// - Clone "ExosuitModule1" comme template de slot.
-    /// - Crée/positionne ExosuitModule5..N en dessous.
-    /// - Crée aussi les écrans "screenExosuitModule5..N" en clonant "screenExosuitModule1"
-    ///   pour éviter les logs "slot not found in pda screenExosuitModuleX".
+    /// - Construit une grille 4×3 en se basant sur ExosuitModule1/2/3.
+    /// - Ne déplace pas les slots vanilla (1..4), ajoute seulement 5..12.
     /// </summary>
     [HarmonyPatch(typeof(uGUI_Equipment), nameof(uGUI_Equipment.Init))]
     internal static class ExtraSlotsVehiclesExosuitUIPatches
     {
         private static readonly FieldInfo AllSlotsField =
             AccessTools.Field(typeof(uGUI_Equipment), "allSlots");
-
-        private static readonly FieldInfo OwnerField =
-            AccessTools.Field(typeof(Equipment), "owner"); // GameObject
 
         static void Postfix(uGUI_Equipment __instance, Equipment equipment)
         {
@@ -36,11 +31,10 @@ namespace UtilitySlots.Features.ExtraSlotsVehiclesUI
                 if (equipment == null)
                     return;
 
-                var ownerGO = OwnerField?.GetValue(equipment) as GameObject;
+                GameObject ownerGO = equipment.owner;
                 if (ownerGO == null)
                     return;
 
-                // On ne touche qu'aux Equipments appartenant à un Exosuit
                 if (ownerGO.GetComponent<Exosuit>() == null)
                     return;
 
@@ -56,21 +50,26 @@ namespace UtilitySlots.Features.ExtraSlotsVehiclesUI
                 if (desired <= ExtraSlotsVehiclesRuntime.VanillaExosuitModuleSlots)
                     return;
 
-                if (!allSlots.TryGetValue("ExosuitModule1", out var module1) || module1 == null)
+                if (!allSlots.TryGetValue("ExosuitModule1", out var mod1) || mod1 == null ||
+                    !allSlots.TryGetValue("ExosuitModule2", out var mod2) || mod2 == null ||
+                    !allSlots.TryGetValue("ExosuitModule3", out var mod3) || mod3 == null)
                 {
-                    Log.Warn("[UtilitySlots][ExtraSlotsVehicles][ExosuitUI] Could not find ExosuitModule1 UI slot.");
+                    Log.Warn("[UtilitySlots][ExtraSlotsVehicles][ExosuitUI] Could not find vanilla ExosuitModule1/2/3.");
                     return;
                 }
 
-                var templateRect = module1.GetComponent<RectTransform>();
-                if (templateRect == null)
+                var r1 = mod1.GetComponent<RectTransform>();
+                var r2 = mod2.GetComponent<RectTransform>();
+                var r3 = mod3.GetComponent<RectTransform>();
+                if (r1 == null || r2 == null || r3 == null)
                 {
-                    Log.Warn("[UtilitySlots][ExtraSlotsVehicles][ExosuitUI] ExosuitModule1 RectTransform missing.");
+                    Log.Warn("[UtilitySlots][ExtraSlotsVehicles][ExosuitUI] Missing RectTransform on vanilla module slots.");
                     return;
                 }
 
-                float slotHeight = Mathf.Abs(templateRect.rect.height);
-                float rowOffset = slotHeight * 0.9f;
+                Vector2 basePos = r1.anchoredPosition;
+                float colSpacing = r2.anchoredPosition.x - r1.anchoredPosition.x;
+                float rowSpacing = r3.anchoredPosition.y - r1.anchoredPosition.y;
 
                 int createdSlots = 0;
 
@@ -78,28 +77,32 @@ namespace UtilitySlots.Features.ExtraSlotsVehiclesUI
                      i <= desired && i <= ExtraSlotsVehiclesRuntime.MaxExosuitModuleSlots;
                      i++)
                 {
+                    int globalIndex = i - 1;
+                    int rowIndex = globalIndex / 4;
+                    int colIndex = globalIndex % 4;
+
+                    float targetX = basePos.x + colSpacing * colIndex;
+                    float targetY = basePos.y + rowSpacing * rowIndex;
+
                     string slotId = $"ExosuitModule{i}";
-                    int rowIndex = i - ExtraSlotsVehiclesRuntime.VanillaExosuitModuleSlots;
-                    float verticalOffset = -rowOffset * rowIndex;
+                    float hOffset = targetX - basePos.x;
+                    float vOffset = targetY - basePos.y;
 
                     EnsureVehicleSlotUI(
                         __instance,
                         allSlots,
                         slotId: slotId,
-                        template: module1,
-                        templateRect: templateRect,
-                        horizontalOffset: 0f,
-                        verticalOffset: verticalOffset
+                        template: mod1,
+                        templateRect: r1,
+                        horizontalOffset: hOffset,
+                        verticalOffset: vOffset
                     );
                     createdSlots++;
                 }
 
-                // Création des "screens" Exosuit pour le PDA
-                int createdScreens = EnsureExosuitModuleScreens(__instance, desired);
-
-                if (createdSlots > 0 || createdScreens > 0)
+                if (createdSlots > 0)
                 {
-                    Log.Info($"[UtilitySlots][ExtraSlotsVehicles][ExosuitUI] Slots créés/mis à jour={createdSlots}, screens créés={createdScreens}, modules={desired}.");
+                    Log.Info($"[UtilitySlots][ExtraSlotsVehicles][ExosuitUI] Slots créés/mis à jour={createdSlots}, modules={desired}.");
                 }
             }
             catch (Exception e)
@@ -139,8 +142,6 @@ namespace UtilitySlots.Features.ExtraSlotsVehiclesUI
                     cloneGO.name = slotId;
 
                     slot = cloneGO.GetComponent<uGUI_EquipmentSlot>();
-                    var rect = cloneGO.GetComponent<RectTransform>();
-
                     slot.slot = slotId;
                     slot.manager = manager;
                     slot.SetActive(true);
@@ -164,65 +165,6 @@ namespace UtilitySlots.Features.ExtraSlotsVehiclesUI
             slot.gameObject.SetActive(true);
 
             Log.Info($"[UtilitySlots][ExtraSlotsVehicles][ExosuitUI] Positioned '{slotId}' at {slotRect.anchoredPosition}.");
-        }
-
-        /// <summary>
-        /// Crée les GameObjects "screenExosuitModule5..N" en clonant "screenExosuitModule1"
-        /// si besoin, pour éviter les logs "slot not found in pda screenExosuitModuleX".
-        /// </summary>
-        private static int EnsureExosuitModuleScreens(uGUI_Equipment ui, int desired)
-        {
-            int created = 0;
-
-            Transform root = ui.transform.root;
-            if (root == null)
-                return 0;
-
-            // On cherche le template "screenExosuitModule1"
-            var templateScreen = FindDeepChild(root, "screenExosuitModule1");
-            if (templateScreen == null)
-            {
-                Log.Warn("[UtilitySlots][ExtraSlotsVehicles][ExosuitUI] screenExosuitModule1 not found; PDA screens will stay vanilla.");
-                return 0;
-            }
-
-            for (int i = ExtraSlotsVehiclesRuntime.VanillaExosuitModuleSlots + 1;
-                 i <= desired && i <= ExtraSlotsVehiclesRuntime.MaxExosuitModuleSlots;
-                 i++)
-            {
-                string screenName = $"screenExosuitModule{i}";
-
-                var existing = FindDeepChild(root, screenName);
-                if (existing != null)
-                    continue;
-
-                var cloneGO = UnityEngine.Object.Instantiate(templateScreen.gameObject, templateScreen.parent);
-                cloneGO.name = screenName;
-                cloneGO.SetActive(templateScreen.gameObject.activeSelf);
-
-                created++;
-                Log.Info($"[UtilitySlots][ExtraSlotsVehicles][ExosuitUI] Created PDA screen '{screenName}' (clone of screenExosuitModule1).");
-            }
-
-            return created;
-        }
-
-        /// <summary>
-        /// Recherche récursive de Transform par nom.
-        /// </summary>
-        private static Transform FindDeepChild(Transform parent, string name)
-        {
-            foreach (Transform child in parent)
-            {
-                if (child.name == name)
-                    return child;
-
-                var result = FindDeepChild(child, name);
-                if (result != null)
-                    return result;
-            }
-
-            return null;
         }
     }
 }

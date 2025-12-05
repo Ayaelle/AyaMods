@@ -5,16 +5,16 @@ using System.Collections.Generic;
 using UtilitySlots.Features.ExtraSlotsCore;
 using UtilitySlots.Features.ExtraSlotsVehciles;
 
-namespace UtilitySlots.Features.ExtraSlotsVehiclesUI
+namespace UtilitySlots.Features.ExtraSlotsVehicles
 {
     /// <summary>
-    /// Patches ExtraSlotsVehiclesUI pour le Cyclops :
-    /// - Étend UpgradeConsole.UnlockedDefaultModuleSlots pour ajouter Module7..N.
+    /// Patches ExtraSlotsVehicles côté Cyclops :
+    /// - Étend les slots de la UpgradeConsole (modules Cyclops) via UnlockDefaultModuleSlots.
     /// </summary>
     [HarmonyPatch]
     internal static class ExtraSlotsVehiclesCyclopsPatches
     {
-        private static bool _logged;
+        private static bool _loggedCyclopsOnce = false;
 
         [HarmonyPatch(typeof(UpgradeConsole), "UnlockDefaultModuleSlots")]
         [HarmonyPostfix]
@@ -33,31 +33,33 @@ namespace UtilitySlots.Features.ExtraSlotsVehiclesUI
                 if (desired <= ExtraSlotsVehiclesRuntime.VanillaCyclopsModuleSlots)
                     return;
 
-                var extraSlots = new List<string>();
+                var slots = new List<string>();
 
-                for (int i = ExtraSlotsVehiclesRuntime.VanillaCyclopsModuleSlots + 1;
-                     i <= desired && i <= ExtraSlotsVehiclesRuntime.MaxCyclopsModuleSlots;
-                     i++)
+                // Slots vanilla :
+                slots.Add("Module1");
+                slots.Add("Module2");
+                slots.Add("Module3");
+                slots.Add("Module4");
+                slots.Add("Module5");
+                slots.Add("Module6");
+
+                // Slots supplémentaires :
+                for (int i = ExtraSlotsVehiclesRuntime.VanillaCyclopsModuleSlots + 1; i <= desired; i++)
                 {
-                    extraSlots.Add($"Module{i}");
+                    slots.Add($"Module{i}");
                 }
 
-                if (extraSlots.Count > 0)
-                {
-                    modules.AddSlots(extraSlots.ToArray());
+                modules.AddSlots(slots.ToArray());
 
-                    if (!_logged)
-                    {
-                        Log.Info(
-                            $"[UtilitySlots][ExtraSlotsVehiclesUI][Cyclops] slots étendus jusqu'à Module{desired} (vanilla={ExtraSlotsVehiclesRuntime.VanillaCyclopsModuleSlots}, max={ExtraSlotsVehiclesRuntime.MaxCyclopsModuleSlots})."
-                        );
-                        _logged = true;
-                    }
+                if (!_loggedCyclopsOnce)
+                {
+                    Log.Info($"[UtilitySlots][ExtraSlotsVehicles][Cyclops] slots étendus à {desired} modules.");
+                    _loggedCyclopsOnce = true;
                 }
             }
             catch (Exception e)
             {
-                Log.Error("[UtilitySlots][ExtraSlotsVehiclesUI][Cyclops] Exception in UnlockDefaultModuleSlots postfix: " + e);
+                Log.Error("[UtilitySlots][ExtraSlotsVehicles][Cyclops] Exception in UnlockDefaultModuleSlots postfix: " + e);
             }
         }
     }

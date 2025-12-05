@@ -1,8 +1,8 @@
-﻿using AyaCoreMod.Core;
-using HarmonyLib;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using AyaCoreMod.Core;
+using HarmonyLib;
 using UnityEngine;
 using UtilitySlots.Features.ExtraSlotsCore;
 using UtilitySlots.Features.ExtraSlotsVehciles;
@@ -12,19 +12,14 @@ namespace UtilitySlots.Features.ExtraSlotsVehiclesUI
     /// <summary>
     /// UI PDA pour les modules du Seamoth.
     /// - N'agit que si l'Equipment appartient à un SeaMoth.
-    /// - Clone "SeamothModule1" comme template pour les slots UI.
-    /// - Crée/positionne SeamothModule5..N en dessous.
-    /// - Crée aussi les "screenSeamothModule5..N" en clonant "screenSeamothModule1"
-    ///   pour éviter les logs "slot not found in pda screenSeamothModuleX".
+    /// - Construit une grille 4×3 en se basant sur SeamothModule1/2/3.
+    /// - Ne déplace pas les slots vanilla (1..4), ajoute seulement 5..12.
     /// </summary>
     [HarmonyPatch(typeof(uGUI_Equipment), nameof(uGUI_Equipment.Init))]
     internal static class ExtraSlotsVehiclesSeamothUIPatches
     {
         private static readonly FieldInfo AllSlotsField =
             AccessTools.Field(typeof(uGUI_Equipment), "allSlots");
-
-        private static readonly FieldInfo OwnerField =
-            AccessTools.Field(typeof(Equipment), "owner"); // GameObject
 
         static void Postfix(uGUI_Equipment __instance, Equipment equipment)
         {
@@ -36,15 +31,13 @@ namespace UtilitySlots.Features.ExtraSlotsVehiclesUI
                 if (equipment == null)
                     return;
 
-                var ownerGO = OwnerField?.GetValue(equipment) as GameObject;
+                GameObject ownerGO = equipment.owner;
                 if (ownerGO == null)
                     return;
 
-                // On ne touche qu'aux Equipments appartenant à un SeaMoth
                 if (ownerGO.GetComponent<SeaMoth>() == null)
                     return;
 
-                // Récupérer les slots UI
                 var allSlotsObj = AllSlotsField?.GetValue(__instance);
                 var allSlots = allSlotsObj as Dictionary<string, uGUI_EquipmentSlot>;
                 if (allSlots == null)
@@ -57,22 +50,27 @@ namespace UtilitySlots.Features.ExtraSlotsVehiclesUI
                 if (desired <= ExtraSlotsVehiclesRuntime.VanillaSeamothModuleSlots)
                     return;
 
-                if (!allSlots.TryGetValue("SeamothModule1", out var module1) || module1 == null)
+                if (!allSlots.TryGetValue("SeamothModule1", out var mod1) || mod1 == null ||
+                    !allSlots.TryGetValue("SeamothModule2", out var mod2) || mod2 == null ||
+                    !allSlots.TryGetValue("SeamothModule3", out var mod3) || mod3 == null)
                 {
-                    Log.Warn("[UtilitySlots][ExtraSlotsVehicles][SeamothUI] Could not find SeamothModule1 UI slot.");
+                    Log.Warn("[UtilitySlots][ExtraSlotsVehicles][SeamothUI] Could not find vanilla SeamothModule1/2/3.");
                     return;
                 }
 
-                var templateRect = module1.GetComponent<RectTransform>();
-                if (templateRect == null)
+                var r1 = mod1.GetComponent<RectTransform>();
+                var r2 = mod2.GetComponent<RectTransform>();
+                var r3 = mod3.GetComponent<RectTransform>();
+                if (r1 == null || r2 == null || r3 == null)
                 {
-                    Log.Warn("[UtilitySlots][ExtraSlotsVehicles][SeamothUI] SeamothModule1 RectTransform missing.");
+                    Log.Warn("[UtilitySlots][ExtraSlotsVehicles][SeamothUI] Missing RectTransform on vanilla module slots.");
                     return;
                 }
 
-                // Layout vertical simple (pour l’instant)
-                float slotHeight = Mathf.Abs(templateRect.rect.height);
-                float rowOffset = slotHeight * 0.9f;
+                // On déduit l'espacement horizontal/vertical d'après le layout vanilla
+                Vector2 basePos = r1.anchoredPosition;
+                float colSpacing = r2.anchoredPosition.x - r1.anchoredPosition.x;
+                float rowSpacing = r3.anchoredPosition.y - r1.anchoredPosition.y;
 
                 int createdSlots = 0;
 
@@ -80,28 +78,35 @@ namespace UtilitySlots.Features.ExtraSlotsVehiclesUI
                      i <= desired && i <= ExtraSlotsVehiclesRuntime.MaxSeamothModuleSlots;
                      i++)
                 {
+                    // index global 0..11 pour Module1..12
+                    int globalIndex = i - 1;
+                    int rowIndex = globalIndex / 4;  // 0,1,2
+                    int colIndex = globalIndex % 4;  // 0..3
+
+                    // Les slots 1..4 (rowIndex 0) restent vanilla, on ne les touche pas.
+                    // Les slots 5..8 -> rowIndex 1, 9..12 -> rowIndex 2.
+                    float targetX = basePos.x + colSpacing * colIndex;
+                    float targetY = basePos.y + rowSpacing * rowIndex;
+
                     string slotId = $"SeamothModule{i}";
-                    int rowIndex = i - ExtraSlotsVehiclesRuntime.VanillaSeamothModuleSlots;
-                    float verticalOffset = -rowOffset * rowIndex;
+                    float hOffset = targetX - basePos.x;
+                    float vOffset = targetY - basePos.y;
 
                     EnsureVehicleSlotUI(
                         __instance,
                         allSlots,
                         slotId: slotId,
-                        template: module1,
-                        templateRect: templateRect,
-                        horizontalOffset: 0f,
-                        verticalOffset: verticalOffset
+                        template: mod1,
+                        templateRect: r1,
+                        horizontalOffset: hOffset,
+                        verticalOffset: vOffset
                     );
                     createdSlots++;
                 }
 
-                // Création des "screens" Seamoth pour le PDA
-                int createdScreens = EnsureSeamothModuleScreens(__instance, desired);
-
-                if (createdSlots > 0 || createdScreens > 0)
+                if (createdSlots > 0)
                 {
-                    Log.Info($"[UtilitySlots][ExtraSlotsVehicles][SeamothUI] Slots créés/mis à jour={createdSlots}, screens créés={createdScreens}, modules={desired}.");
+                    Log.Info($"[UtilitySlots][ExtraSlotsVehicles][SeamothUI] Slots créés/mis à jour={createdSlots}, modules={desired}.");
                 }
             }
             catch (Exception e)
@@ -110,9 +115,6 @@ namespace UtilitySlots.Features.ExtraSlotsVehiclesUI
             }
         }
 
-        /// <summary>
-        /// Crée / réutilise un slot UI de module Seamoth (SeamothModuleX).
-        /// </summary>
         private static void EnsureVehicleSlotUI(
             uGUI_Equipment manager,
             Dictionary<string, uGUI_EquipmentSlot> allSlots,
@@ -124,10 +126,8 @@ namespace UtilitySlots.Features.ExtraSlotsVehiclesUI
         {
             uGUI_EquipmentSlot slot = null;
 
-            // 1) Dico
             if (!allSlots.TryGetValue(slotId, out slot) || slot == null)
             {
-                // 2) Hiérarchie (au cas où un autre mod l’aurait déjà créé)
                 Transform parent = template.transform.parent;
                 foreach (Transform child in parent)
                 {
@@ -139,7 +139,6 @@ namespace UtilitySlots.Features.ExtraSlotsVehiclesUI
                     }
                 }
 
-                // 3) Clone si rien trouvé
                 if (slot == null)
                 {
                     var parentTr = template.transform.parent;
@@ -147,8 +146,6 @@ namespace UtilitySlots.Features.ExtraSlotsVehiclesUI
                     cloneGO.name = slotId;
 
                     slot = cloneGO.GetComponent<uGUI_EquipmentSlot>();
-                    var rect = cloneGO.GetComponent<RectTransform>();
-
                     slot.slot = slotId;
                     slot.manager = manager;
                     slot.SetActive(true);
@@ -160,7 +157,6 @@ namespace UtilitySlots.Features.ExtraSlotsVehiclesUI
                 }
             }
 
-            // 4) Positionnement / activation
             var slotRect = slot.GetComponent<RectTransform>();
             Vector2 basePos = templateRect.anchoredPosition;
 
@@ -173,64 +169,6 @@ namespace UtilitySlots.Features.ExtraSlotsVehiclesUI
             slot.gameObject.SetActive(true);
 
             Log.Info($"[UtilitySlots][ExtraSlotsVehicles][SeamothUI] Positioned '{slotId}' at {slotRect.anchoredPosition}.");
-        }
-
-        /// <summary>
-        /// Crée les GameObjects "screenSeamothModule5..N" en clonant "screenSeamothModule1"
-        /// pour éviter les logs "slot not found in pda screenSeamothModuleX".
-        /// </summary>
-        private static int EnsureSeamothModuleScreens(uGUI_Equipment ui, int desired)
-        {
-            int created = 0;
-
-            Transform root = ui.transform.root;
-            if (root == null)
-                return 0;
-
-            var templateScreen = FindDeepChild(root, "screenSeamothModule1");
-            if (templateScreen == null)
-            {
-                Log.Warn("[UtilitySlots][ExtraSlotsVehicles][SeamothUI] screenSeamothModule1 not found; PDA screens will stay vanilla.");
-                return 0;
-            }
-
-            for (int i = ExtraSlotsVehiclesRuntime.VanillaSeamothModuleSlots + 1;
-                 i <= desired && i <= ExtraSlotsVehiclesRuntime.MaxSeamothModuleSlots;
-                 i++)
-            {
-                string screenName = $"screenSeamothModule{i}";
-
-                var existing = FindDeepChild(root, screenName);
-                if (existing != null)
-                    continue;
-
-                var cloneGO = UnityEngine.Object.Instantiate(templateScreen.gameObject, templateScreen.parent);
-                cloneGO.name = screenName;
-                cloneGO.SetActive(templateScreen.gameObject.activeSelf);
-
-                created++;
-                Log.Info($"[UtilitySlots][ExtraSlotsVehicles][SeamothUI] Created PDA screen '{screenName}' (clone of screenSeamothModule1).");
-            }
-
-            return created;
-        }
-
-        /// <summary>
-        /// Recherche récursive d’un Transform par nom dans la hiérarchie.
-        /// </summary>
-        private static Transform FindDeepChild(Transform parent, string name)
-        {
-            foreach (Transform child in parent)
-            {
-                if (child.name == name)
-                    return child;
-
-                var result = FindDeepChild(child, name);
-                if (result != null)
-                    return result;
-            }
-
-            return null;
         }
     }
 }
