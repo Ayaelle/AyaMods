@@ -1,66 +1,47 @@
-﻿using System;
-using AyaCoreMod.Core;
+﻿using System.Collections.Generic;
+using HarmonyLib;
 using UnityEngine;
 
-namespace UtilitySlots.Features.ExtraSlotsVehiclesUI
+namespace UtilitySlots.Features.ExtraSlotsVehicles
 {
-    /// <summary>
-    /// Helpers communs pour la gestion de l'UI des véhicules (recherche récursive, clonage, etc).
-    /// </summary>
     internal static class ExtraSlotsVehiclesUIBootstrap
     {
-        /// <summary>
-        /// Recherche récursive d'un enfant par nom dans la hiérarchie.
-        /// </summary>
-        public static Transform FindChildRecursive(Transform root, string name)
+        // Accès à uGUI_Equipment.allSlots (privé)
+        public static readonly System.Reflection.FieldInfo AllSlotsField =
+            AccessTools.Field(typeof(uGUI_Equipment), "allSlots");
+
+        public static GameObject FindChildRecursive(Transform root, string name)
         {
-            if (root == null || string.IsNullOrEmpty(name))
-                return null;
+            if (root == null) return null;
 
-            if (root.name == name)
-                return root;
-
-            for (int i = 0; i < root.childCount; i++)
+            foreach (Transform t in root)
             {
-                var child = root.GetChild(i);
-                var found = FindChildRecursive(child, name);
-                if (found != null)
-                    return found;
-            }
+                if (t.name == name)
+                    return t.gameObject;
 
+                var r = FindChildRecursive(t, name);
+                if (r != null) return r;
+            }
             return null;
         }
 
-        /// <summary>
-        /// Clone un écran de slot (par ex. screenSeamothModule1) sous le même parent, avec un nouveau nom.
-        /// </summary>
-        public static GameObject CloneScreen(GameObject template, Transform parent, string newName)
+        public static bool TryGetAllSlots(uGUI_Equipment ui, out Dictionary<string, uGUI_EquipmentSlot> allSlots)
         {
-            if (template == null || parent == null)
-                return null;
+            allSlots = null;
+            if (ui == null) return false;
 
-            var clone = UnityEngine.Object.Instantiate(template, parent, worldPositionStays: false);
-            clone.name = newName;
-            clone.SetActive(true);
-            return clone;
+            var obj = AllSlotsField?.GetValue(ui);
+            allSlots = obj as Dictionary<string, uGUI_EquipmentSlot>;
+            return allSlots != null;
         }
 
-        /// <summary>
-        /// Log utilitaire pour l'UI des véhicules.
-        /// </summary>
-        public static void LogInfo(string message)
+        public static float ComputeScaleForDesired(int desired)
         {
-            Log.Info("[UtilitySlots][ExtraSlotsVehicles][UI] " + message);
-        }
-
-        public static void LogWarn(string message)
-        {
-            Log.Warn("[UtilitySlots][ExtraSlotsVehicles][UI] " + message);
-        }
-
-        public static void LogError(string message)
-        {
-            Log.Error("[UtilitySlots][ExtraSlotsVehicles][UI] " + message);
+            // “no scroll”, on compacte un peu quand on dépasse beaucoup.
+            if (desired >= 12) return 0.80f;
+            if (desired >= 10) return 0.85f;
+            if (desired >= 8) return 0.90f;
+            return 1.00f;
         }
     }
 }

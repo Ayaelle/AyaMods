@@ -75,6 +75,8 @@ namespace UtilitySlots
             {
                 Log.Error("[UtilitySlots] Error while enabling ExtraSlotsCore: " + e);
             }
+            //ExtraSlots feature :
+            FeatureRegistry.Enable<UtilitySlots.Features.ExtraSlotsVehicles.ExtraSlotsVehiclesFeature>();
             // InternalAccess : activé TOUJOURS, la feature lit RuntimeInternalAccessConfig.EnableInternalAccess
             FeatureRegistry.Enable<UtilitySlots.Features.InternalAccessFeature.InternalAccessFeature>();
             Log.Info("[UtilitySlots] InternalAccessFeature enabled.");

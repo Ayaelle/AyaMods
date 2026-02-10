@@ -3,7 +3,7 @@ using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using UtilitySlots.Features.ExtraSlotsVehciles;
+using UtilitySlots.Features.ExtraSlotsVehicles;
 
 namespace UtilitySlots.Features.ExtraSlotsCore
 {
@@ -35,6 +35,8 @@ namespace UtilitySlots.Features.ExtraSlotsCore
             "Chip6"
         };
 
+        private static bool _mappingDone;
+
         /// <summary>
         /// Initialise / complète le dictionnaire global Equipment.slotMapping pour :
         /// - Chip1..Chip6
@@ -44,8 +46,11 @@ namespace UtilitySlots.Features.ExtraSlotsCore
         /// 
         /// Appelé une fois au démarrage de la feature ExtraSlots.
         /// </summary>
-        internal static void EnsureGlobalChipSlotMapping()
+        internal static void EnsureGlobalSlotMapping()
         {
+            if (_mappingDone) return;
+            _mappingDone = true;
+
             try
             {
                 if (SlotMappingField == null)
@@ -77,36 +82,33 @@ namespace UtilitySlots.Features.ExtraSlotsCore
                 foreach (var slotId in ExtraChipSlots)
                     EnsureSlot(slotId, EquipmentType.Chip);
 
-                // --- Véhicules : Seamoth modules ---
+                // --- Véhicules (mapping global) ---
 
-                int seamothMax = ExtraSlotsVehiclesRuntime.MaxSeamothModuleSlots;
-                for (int i = ExtraSlotsVehiclesRuntime.VanillaSeamothModuleSlots + 1; i <= seamothMax; i++)
+                // Seamoth : SeamothModule1..12 (vanilla = 1..4, nous ajoutons 5..12)
+                for (int i = 1; i <= 12; i++)
                 {
                     string slotId = $"SeamothModule{i}";
                     EnsureSlot(slotId, EquipmentType.SeamothModule);
                 }
 
-                // --- Véhicules : Exosuit modules ---
-
-                int exoMax = ExtraSlotsVehiclesRuntime.MaxExosuitModuleSlots;
-                for (int i = ExtraSlotsVehiclesRuntime.VanillaExosuitModuleSlots + 1; i <= exoMax; i++)
+                // Exosuit : ExosuitModule1..12 (vanilla = 1..4, nous ajoutons 5..12)
+                for (int i = 1; i <= 12; i++)
                 {
                     string slotId = $"ExosuitModule{i}";
                     EnsureSlot(slotId, EquipmentType.ExosuitModule);
                 }
 
-                // --- Cyclops modules ---
-
-                int cyclopsMax = ExtraSlotsVehiclesRuntime.MaxCyclopsModuleSlots;
-                for (int i = ExtraSlotsVehiclesRuntime.VanillaCyclopsModuleSlots + 1; i <= cyclopsMax; i++)
+                // Cyclops : Module1..14 (vanilla = 1..6, nous ajoutons 7..14)
+                for (int i = 1; i <= 14; i++)
                 {
                     string slotId = $"Module{i}";
                     EnsureSlot(slotId, EquipmentType.CyclopsModule);
                 }
+
             }
             catch (Exception e)
             {
-                Log.Error("[UtilitySlots][ExtraSlotsCore][Compat] Exception in EnsureGlobalChipSlotMapping: " + e);
+                Log.Error("[UtilitySlots][ExtraSlotsCore][Compat] Exception in EnsureGlobalSlotMapping: " + e);
             }
         }
 

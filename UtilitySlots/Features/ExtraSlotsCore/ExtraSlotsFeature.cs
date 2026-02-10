@@ -24,7 +24,7 @@ namespace UtilitySlots.Features.ExtraSlotsCore
             }
 
             // 1) IMPORTANT : on étend le mapping global une fois
-            ExtraSlotsCompatibilityPatches.EnsureGlobalChipSlotMapping();
+            ExtraSlotsCompatibilityPatches.EnsureGlobalSlotMapping();
 
             if (_runner != null)
                 return;

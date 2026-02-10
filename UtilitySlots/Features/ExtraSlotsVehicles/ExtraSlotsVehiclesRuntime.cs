@@ -1,130 +1,52 @@
-﻿using UtilitySlots.Config;
+﻿using AyaCoreMod.Core;
+using HarmonyLib;
 
-namespace UtilitySlots.Features.ExtraSlotsVehciles
+namespace UtilitySlots.Features.ExtraSlotsVehicles
 {
-    /// <summary>
-    /// Helpers runtime pour les slots de modules véhicules (Seamoth / Exosuit / Cyclops).
-    /// Gère le "nombre de slots" côté logique, pas l'UI.
-    /// </summary>
-    public static class ExtraSlotsVehiclesRuntime
+    internal static class ExtraSlotsVehiclesRuntime
     {
-        // Vanilla
-        public const int VanillaSeamothModuleSlots = 4;
-        public const int VanillaExosuitModuleSlots = 4;
-        public const int VanillaCyclopsModuleSlots = 6;
+        private const int VanillaSeamoth = 4;
+        private const int VanillaExosuit = 4;  // (les bras sont séparés : ExosuitArmLeft/Right)
+        private const int VanillaCyclops = 6;
 
-        // Cibles max
-        public const int MaxSeamothModuleSlots = 12;
-        public const int MaxExosuitModuleSlots = 12;
-        public const int MaxCyclopsModuleSlots = 14;
+        public static bool IsEnabled()
+            => UtilitySlots.Config.RuntimeConfig.EnableExtraSlots;
 
-        private static GlobalOptions GOpt => GlobalOptions.Instance;
+        public static int DesiredSeamothModules()
+            => UtilitySlots.Config.RuntimeConfig.SeamothModuleSlots;
 
-        private static bool ExtraSlotsEnabled()
+        public static int DesiredExosuitModules()
+            => UtilitySlots.Config.RuntimeConfig.ExosuitModuleSlots;
+
+        public static int DesiredCyclopsModules()
+            => UtilitySlots.Config.RuntimeConfig.CyclopsModuleSlots;
+
+        public static void ExpandSeaMoth(Equipment modules)
+            => TryExpand(modules, "Seamoth", VanillaSeamoth, DesiredSeamothModules(), prefix: "SeamothModule");
+
+        public static void ExpandExosuit(Equipment modules)
+            => TryExpand(modules, "Exosuit", VanillaExosuit, DesiredExosuitModules(), prefix: "ExosuitModule");
+
+        public static void ExpandCyclops(Equipment modules)
+            => TryExpand(modules, "Cyclops", VanillaCyclops, DesiredCyclopsModules(), prefix: "Module");
+
+        private static void TryExpand(Equipment equipment, string tag, int vanilla, int desired, string prefix)
         {
-            var g = GOpt;
-            return g != null && g.EnableExtraSlots;
-        }
+            if (!IsEnabled()) return;
+            if (equipment == null) return;
 
-        /// <summary>
-        /// Nombre de slots de modules souhaité pour le Seamoth.
-        /// Clampé entre vanilla et max.
-        /// </summary>
-        public static int GetDesiredSeamothModuleSlots()
-        {
-            if (!ExtraSlotsEnabled())
-                return VanillaSeamothModuleSlots;
+            if (desired < vanilla) desired = vanilla;
+            if (desired == vanilla) return;
 
-            var g = GOpt;
-            int requested = g != null ? g.SeamothModuleSlots : VanillaSeamothModuleSlots;
+            // On ajoute seulement les slots manquants (vanilla+1..desired)
+            // Equipment.AddSlot(string) existe bien dans tes assemblies.
+            for (int i = vanilla + 1; i <= desired; i++)
+            {
+                string slotId = $"{prefix}{i}";
+                equipment.AddSlot(slotId);
+            }
 
-            if (requested < VanillaSeamothModuleSlots)
-                requested = VanillaSeamothModuleSlots;
-
-            if (requested > MaxSeamothModuleSlots)
-                requested = MaxSeamothModuleSlots;
-
-            return requested;
-        }
-
-        /// <summary>
-        /// Nombre de slots de modules souhaité pour l’Exosuit (hors bras).
-        /// Clampé entre vanilla et max.
-        /// </summary>
-        public static int GetDesiredExosuitModuleSlots()
-        {
-            if (!ExtraSlotsEnabled())
-                return VanillaExosuitModuleSlots;
-
-            var g = GOpt;
-            int requested = g != null ? g.ExosuitModuleSlots : VanillaExosuitModuleSlots;
-
-            if (requested < VanillaExosuitModuleSlots)
-                requested = VanillaExosuitModuleSlots;
-
-            if (requested > MaxExosuitModuleSlots)
-                requested = MaxExosuitModuleSlots;
-
-            return requested;
-        }
-
-        /// <summary>
-        /// Nombre de slots de modules souhaité pour le Cyclops.
-        /// Clampé entre vanilla et max.
-        /// </summary>
-        public static int GetDesiredCyclopsModuleSlots()
-        {
-            if (!ExtraSlotsEnabled())
-                return VanillaCyclopsModuleSlots;
-
-            var g = GOpt;
-            int requested = g != null ? g.CyclopsModuleSlots : VanillaCyclopsModuleSlots;
-
-            if (requested < VanillaCyclopsModuleSlots)
-                requested = VanillaCyclopsModuleSlots;
-
-            if (requested > MaxCyclopsModuleSlots)
-                requested = MaxCyclopsModuleSlots;
-
-            return requested;
-        }
-
-        /// <summary>
-        /// Construit la liste complète des slotIDs pour le Seamoth :
-        /// "SeamothModule1".."SeamothModuleN".
-        /// </summary>
-        public static string[] BuildSeamothSlotIDs(int desired)
-        {
-            if (desired <= 0)
-                return new string[0];
-
-            var arr = new string[desired];
-            for (int i = 0; i < desired; i++)
-                arr[i] = "SeamothModule" + (i + 1);
-
-            return arr;
-        }
-
-        /// <summary>
-        /// Construit la liste complète des slotIDs pour l’Exosuit :
-        /// bras + "ExosuitModule1".."ExosuitModuleN".
-        /// L’ordre : bras gauche, bras droit, puis modules.
-        /// </summary>
-        public static string[] BuildExosuitSlotIDs(int desiredModules)
-        {
-            if (desiredModules < VanillaExosuitModuleSlots)
-                desiredModules = VanillaExosuitModuleSlots;
-
-            // 2 bras + N modules
-            var arr = new string[2 + desiredModules];
-
-            arr[0] = "ExosuitArmLeft";
-            arr[1] = "ExosuitArmRight";
-
-            for (int i = 0; i < desiredModules; i++)
-                arr[2 + i] = "ExosuitModule" + (i + 1);
-
-            return arr;
+            Log.Info($"[UtilitySlots][ExtraSlotsVehicles][{tag}] slots étendus à {desired} ({prefix}1..{prefix}{desired}).");
         }
     }
 }
